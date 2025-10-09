@@ -24,3 +24,4 @@ services:
         value: false
     healthCheckPath: /_stcore/health
     autoDeploy: true
+

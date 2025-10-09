@@ -1,6 +1,8 @@
 # app.py
 import streamlit as st
 import pandas as pd
+import os
+from dotenv import load_dotenv
 from database import db_manager, cliente_crud, dados_crud
 from auth import AuthManager, show_auth_page, show_logout_button, show_admin_panel, show_admin_register_clinic_form
 from dashboard import (
@@ -8,6 +10,15 @@ from dashboard import (
     create_channel_analysis, create_cost_analysis, create_monthly_trends,
     create_insights_section, load_data_from_database
 )
+
+# Carregar variáveis de ambiente
+load_dotenv()
+
+# Configurações
+SECRET_KEY = os.getenv('SECRET_KEY', 'chave_padrao_para_desenvolvimento')
+DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///prestige_clinic.db')
+GOOGLE_SHEETS_CREDENTIALS = os.getenv('GOOGLE_SHEETS_CREDENTIALS', '{}')
+DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
 
 st.set_page_config(page_title="Dashboard Clínica Estética", layout="wide", page_icon="🏥")
 

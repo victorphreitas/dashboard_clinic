@@ -1,2 +1,4 @@
 /venv
 google_credentials.json
+.env
+credentials.json

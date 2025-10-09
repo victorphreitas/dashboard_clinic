@@ -6,7 +6,15 @@ Gerencia login, logout, registro e controle de acesso.
 import streamlit as st
 from typing import Optional, Dict, Any
 import re
+import os
+from dotenv import load_dotenv
 from database import cliente_crud, Cliente
+
+# Carregar variáveis de ambiente
+load_dotenv()
+
+# Configurações
+SECRET_KEY = os.getenv('SECRET_KEY', 'chave_padrao_para_desenvolvimento')
 
 class AuthManager:
     """Gerenciador de autenticação e sessão"""

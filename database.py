@@ -12,21 +12,26 @@ from sqlalchemy.exc import SQLAlchemyError
 from typing import Optional, List, Dict, Any
 import bcrypt
 from datetime import datetime
+from dotenv import load_dotenv
 
 from models import Base, Cliente, DadosDashboard
+
+# Carregar variáveis de ambiente
+load_dotenv()
 
 class DatabaseManager:
     """Gerenciador de conexão e operações com banco de dados"""
     
-    def __init__(self, database_url: str = "sqlite:///prestige_clinic.db"):
+    def __init__(self, database_url: str = None):
         """
         Inicializa o gerenciador de banco de dados
         
         Args:
             database_url: URL de conexão com o banco (SQLite por padrão)
         """
-        self.database_url = database_url
-        self.engine = create_engine(database_url, echo=False)
+        # Usar variável de ambiente se disponível, senão usar padrão
+        self.database_url = database_url or os.getenv('DATABASE_URL', 'sqlite:///prestige_clinic.db')
+        self.engine = create_engine(self.database_url, echo=False)
         self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
         
     def create_tables(self):

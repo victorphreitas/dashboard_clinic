@@ -8,6 +8,14 @@ import pandas as pd
 from database import db_manager, cliente_crud, dados_crud
 from oauth2client.service_account import ServiceAccountCredentials
 import os
+import json
+from dotenv import load_dotenv
+
+# Carregar variáveis de ambiente
+load_dotenv()
+
+# Configurações
+GOOGLE_SHEETS_CREDENTIALS = os.getenv('GOOGLE_SHEETS_CREDENTIALS', '{}')
 
 # Configuração das planilhas
 SHEETS_CONFIG = {
@@ -28,13 +36,32 @@ SHEETS_CONFIG = {
 def setup_google_sheets_auth():
     """Configura autenticação com Google Sheets"""
     try:
+        # Tentar usar credenciais das variáveis de ambiente primeiro
+        if GOOGLE_SHEETS_CREDENTIALS and GOOGLE_SHEETS_CREDENTIALS != '{}':
+            try:
+                credentials_json = json.loads(GOOGLE_SHEETS_CREDENTIALS)
+                scope = [
+                    'https://spreadsheets.google.com/feeds',
+                    'https://www.googleapis.com/auth/drive'
+                ]
+                credentials = ServiceAccountCredentials.from_json_keyfile_dict(credentials_json, scope)
+                gc = gspread.authorize(credentials)
+                print("✅ Autenticação com Google Sheets configurada via variáveis de ambiente!")
+                return gc
+            except Exception as e:
+                print(f"⚠️ Erro ao usar credenciais das variáveis de ambiente: {e}")
+                print("🔄 Tentando usar arquivo de credenciais...")
+        
+        # Fallback para arquivo de credenciais
         if os.path.exists('google_credentials.json'):
             scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
             credentials = ServiceAccountCredentials.from_json_keyfile_name('google_credentials.json', scope)
             gc = gspread.authorize(credentials)
+            print("✅ Autenticação com Google Sheets configurada via arquivo!")
             return gc
         else:
             print("❌ Arquivo 'google_credentials.json' não encontrado")
+            print("💡 Configure GOOGLE_SHEETS_CREDENTIALS no arquivo .env")
             return None
     except Exception as e:
         print(f"❌ Erro na autenticação: {e}")
