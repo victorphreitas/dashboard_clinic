@@ -1,0 +1,9 @@
+# Configurações do banco de dados
+DATABASE_URL=sqlite:///prestige_clinic.db
+
+# Para produção, use PostgreSQL:
+# DATABASE_URL=postgresql://usuario:senha@localhost:5432/prestige_clinic
+
+# Configurações de segurança (opcional)
+SECRET_KEY=sua_chave_secreta_aqui
+

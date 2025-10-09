@@ -1,0 +1,9 @@
+streamlit
+pandas
+plotly
+numpy
+sqlalchemy
+bcrypt
+python-dotenv
+gspread
+oauth2client
