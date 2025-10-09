@@ -8,19 +8,39 @@ import pandas as pd
 from database import db_manager, cliente_crud, dados_crud
 from oauth2client.service_account import ServiceAccountCredentials
 import os
+import json
+from dotenv import load_dotenv
 from datetime import datetime
 import hashlib
+
+# Carregar variáveis de ambiente
+load_dotenv()
+
+# Configurações
+GOOGLE_SHEETS_CREDENTIALS = os.getenv('GOOGLE_SHEETS_CREDENTIALS', '{}')
 
 def setup_google_sheets_auth():
     """Configura autenticação com Google Sheets"""
     try:
-        if os.path.exists('google_credentials.json'):
-            scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-            credentials = ServiceAccountCredentials.from_json_keyfile_name('google_credentials.json', scope)
-            gc = gspread.authorize(credentials)
-            return gc
+        # Usar apenas credenciais das variáveis de ambiente
+        if GOOGLE_SHEETS_CREDENTIALS and GOOGLE_SHEETS_CREDENTIALS != '{}':
+            try:
+                credentials_json = json.loads(GOOGLE_SHEETS_CREDENTIALS)
+                scope = [
+                    'https://spreadsheets.google.com/feeds',
+                    'https://www.googleapis.com/auth/drive'
+                ]
+                credentials = ServiceAccountCredentials.from_json_keyfile_dict(credentials_json, scope)
+                gc = gspread.authorize(credentials)
+                print("✅ Autenticação com Google Sheets configurada via variáveis de ambiente!")
+                return gc
+            except Exception as e:
+                print(f"❌ Erro ao usar credenciais das variáveis de ambiente: {e}")
+                print("💡 Verifique se GOOGLE_SHEETS_CREDENTIALS está configurado corretamente")
+                return None
         else:
-            print("❌ Arquivo 'google_credentials.json' não encontrado")
+            print("❌ GOOGLE_SHEETS_CREDENTIALS não configurado")
+            print("💡 Configure GOOGLE_SHEETS_CREDENTIALS no arquivo .env ou variáveis de ambiente")
             return None
     except Exception as e:
         print(f"❌ Erro na autenticação: {e}")

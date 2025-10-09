@@ -8,6 +8,14 @@ import pandas as pd
 from database import db_manager, cliente_crud, dados_crud
 from oauth2client.service_account import ServiceAccountCredentials
 import os
+import json
+from dotenv import load_dotenv
+
+# Carregar variáveis de ambiente
+load_dotenv()
+
+# Configurações
+GOOGLE_SHEETS_CREDENTIALS = os.getenv('GOOGLE_SHEETS_CREDENTIALS', '{}')
 
 # Configuração do Google Sheets
 GOOGLE_SHEETS_URL = "https://docs.google.com/spreadsheets/d/1acueFut0Baft66fH7jTZuf0UYkMX8txqfXOZPf-BoVs/edit?usp=drivesdk"
@@ -16,20 +24,25 @@ SHEET_ID = "1acueFut0Baft66fH7jTZuf0UYkMX8txqfXOZPf-BoVs"
 def setup_google_sheets_auth():
     """Configura autenticação com Google Sheets"""
     try:
-        # Método 1: Credenciais de arquivo JSON
-        if os.path.exists('google_credentials.json'):
-            scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-            credentials = ServiceAccountCredentials.from_json_keyfile_name('google_credentials.json', scope)
-            gc = gspread.authorize(credentials)
-            return gc
+        # Usar apenas credenciais das variáveis de ambiente
+        if GOOGLE_SHEETS_CREDENTIALS and GOOGLE_SHEETS_CREDENTIALS != '{}':
+            try:
+                credentials_json = json.loads(GOOGLE_SHEETS_CREDENTIALS)
+                scope = [
+                    'https://spreadsheets.google.com/feeds',
+                    'https://www.googleapis.com/auth/drive'
+                ]
+                credentials = ServiceAccountCredentials.from_json_keyfile_dict(credentials_json, scope)
+                gc = gspread.authorize(credentials)
+                print("✅ Autenticação com Google Sheets configurada via variáveis de ambiente!")
+                return gc
+            except Exception as e:
+                print(f"❌ Erro ao usar credenciais das variáveis de ambiente: {e}")
+                print("💡 Verifique se GOOGLE_SHEETS_CREDENTIALS está configurado corretamente")
+                return None
         else:
-            print("❌ Arquivo 'google_credentials.json' não encontrado")
-            print("💡 Para configurar:")
-            print("   1. Acesse: https://console.developers.google.com/")
-            print("   2. Crie um projeto e ative a Google Sheets API")
-            print("   3. Crie credenciais de conta de serviço")
-            print("   4. Baixe o arquivo JSON e renomeie para 'credentials.json'")
-            print("   5. Compartilhe a planilha com o email da conta de serviço")
+            print("❌ GOOGLE_SHEETS_CREDENTIALS não configurado")
+            print("💡 Configure GOOGLE_SHEETS_CREDENTIALS no arquivo .env ou variáveis de ambiente")
             return None
     except Exception as e:
         print(f"❌ Erro na autenticação: {e}")
