@@ -69,21 +69,29 @@ class DadosDashboard(Base):
     
     # Dados Financeiros
     faturamento = Column(Float, default=0.0)
-    investimento_total = Column(Float, default=0.0)
-    investimento_facebook = Column(Float, default=0.0)
-    investimento_google = Column(Float, default=0.0)
+    valor_investido_total = Column(Float, default=0.0)  # Valor Investido Total (Realizado)
+    orcamento_previsto_total = Column(Float, default=0.0)  # Orçamento Previsto Total
+    orcamento_realizado_facebook = Column(Float, default=0.0)  # Orçamento Realizado Facebook Ads
+    orcamento_previsto_facebook = Column(Float, default=0.0)  # Orçamento Previsto Facebook Ads
+    orcamento_realizado_google = Column(Float, default=0.0)  # Orçamento Realizado Google Ads
+    orcamento_previsto_google = Column(Float, default=0.0)  # Orçamento Previsto Google Ads
     
     # KPIs calculados (podem ser calculados dinamicamente ou armazenados)
-    conversao_leads_csm = Column(Float, default=0.0)
-    conversao_csm_csc = Column(Float, default=0.0)
-    conversao_csc_fechamento = Column(Float, default=0.0)
-    conversao_leads_fechamento = Column(Float, default=0.0)
-    custo_por_compra = Column(Float, default=0.0)
-    roas = Column(Float, default=0.0)
-    custo_por_lead = Column(Float, default=0.0)
-    custo_por_consulta_marcada = Column(Float, default=0.0)
-    custo_por_consulta_comparecida = Column(Float, default=0.0)
-    ticket_medio = Column(Float, default=0.0)
+    conversao_csm_leads = Column(Float, default=0.0)  # % de conversão Csm./leads
+    conversao_csc_csm = Column(Float, default=0.0)  # % de conversão Csc./Csm.
+    conversao_fechamento_csc = Column(Float, default=0.0)  # % de conversão fechamento/Csc.
+    conversao_fechamento_leads = Column(Float, default=0.0)  # % de conversão fechamento/leads
+    custo_por_compra_cirurgias = Column(Float, default=0.0)  # Custo por Compra (Cirurgias)
+    roas = Column(Float, default=0.0)  # Retorno Sobre Investimento (ROAS)
+    custo_por_lead_total = Column(Float, default=0.0)  # Custo por Lead Total
+    custo_por_consulta_marcada = Column(Float, default=0.0)  # Custo por Consulta Marcada
+    custo_por_consulta_comparecida = Column(Float, default=0.0)  # Custo por Consulta Comparecida
+    ticket_medio = Column(Float, default=0.0)  # Ticket Médio
+    
+    # Taxas Ideais (thresholds)
+    taxa_ideal_csm = Column(Float, default=10.0)  # Csm. = Consultas Marcadas >10%
+    taxa_ideal_csc = Column(Float, default=50.0)  # Csc. = Consultas Comparecidas >50%
+    taxa_ideal_fechamentos = Column(Float, default=40.0)  # Fechamentos >40%
     
     data_criacao = Column(DateTime, default=datetime.utcnow)
     data_atualizacao = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

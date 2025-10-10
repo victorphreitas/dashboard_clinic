@@ -103,31 +103,57 @@ def process_controle_leads_data(data):
         'Dezembro': 'Dezembro'
     }
     
-    # Mapeia as linhas da planilha para os campos do dashboard
+    # Mapeia as linhas da planilha para os campos do dashboard (novo formato)
     row_mapping = {
+        # Leads
         'Leads Totais': 'leads_totais',
         'Leads Google Ads': 'leads_google_ads',
         'Leads Meta Ads': 'leads_meta_ads',
         'Leads Instagram Orgânico': 'leads_instagram_organico',
         'Leads Indicação': 'leads_indicacao',
         'Leads Origem Desconhecida': 'leads_origem_desconhecida',
+        
+        # Consultas Marcadas
         'Consultas Marcadas Totais': 'consultas_marcadas_totais',
         'Consultas Marcadas Google Ads': 'consultas_marcadas_google_ads',
         'Consultas Marcadas Meta Ads': 'consultas_marcadas_meta_ads',
         'Consultas Marcadas IG Orgânico': 'consultas_marcadas_ig_organico',
         'Consultas Marcadas Indicação': 'consultas_marcadas_indicacao',
         'Consultas Marcadas Outros': 'consultas_marcadas_outros',
+        
+        # Consultas Comparecidas
         'Consultas Comparecidas': 'consultas_comparecidas',
+        
+        # Fechamentos
         'Fechamentos Protocolos/Cirurgias': 'fechamentos_totais',
         'Fechamentos Google Ads': 'fechamentos_google_ads',
         'Fechamentos Meta Ads': 'fechamentos_meta_ads',
         'Fechamentos IG Orgânico': 'fechamentos_ig_organico',
         'Fechamentos Indicação': 'fechamentos_indicacao',
         'Fechamentos Outros': 'fechamentos_outros',
+        
+        # Dados Financeiros
         'Faturamento': 'faturamento',
-        'Valor Investido Total': 'investimento_total',
-        'Orçamento Previsto Facebook Ads': 'investimento_facebook',
-        'Orçamento Previsto Google Ads': 'investimento_google'
+        'Valor Investido Total (Realizado)': 'valor_investido_total',
+        'Orçamento Previsto Total': 'orcamento_previsto_total',
+        'Orçamento Realizado Facebook Ads': 'orcamento_realizado_facebook',
+        'Orçamento Previsto Facebook Ads': 'orcamento_previsto_facebook',
+        'Orçamento Realizado Google Ads': 'orcamento_realizado_google',
+        'Orçamento Previsto Google Ads': 'orcamento_previsto_google',
+        
+        # KPIs de Conversão
+        '% de conversão Csm./leads': 'conversao_csm_leads',
+        '% de conversão Csc./Csm.': 'conversao_csc_csm',
+        '% de conversão fechamento/Csc.': 'conversao_fechamento_csc',
+        '% de conversão fechamento/leads': 'conversao_fechamento_leads',
+        
+        # KPIs Financeiros
+        'Custo por Compra (Cirurgias)': 'custo_por_compra_cirurgias',
+        'Retorno Sobre Investimento (ROAS)': 'roas',
+        'Custo por Lead Total': 'custo_por_lead_total',
+        'Custo por Consulta Marcada': 'custo_por_consulta_marcada',
+        'Custo por Consulta Comparecida': 'custo_por_consulta_comparecida',
+        'Ticket Médio': 'ticket_medio'
     }
     
     # Cria um dicionário para armazenar dados por mês
@@ -156,29 +182,60 @@ def process_controle_leads_data(data):
                         if mes_dashboard not in meses_data:
                             meses_data[mes_dashboard] = {
                                 'mes': mes_dashboard,
+                                # Leads
                                 'leads_totais': 0,
                                 'leads_google_ads': 0,
                                 'leads_meta_ads': 0,
                                 'leads_instagram_organico': 0,
                                 'leads_indicacao': 0,
                                 'leads_origem_desconhecida': 0,
+                                
+                                # Consultas Marcadas
                                 'consultas_marcadas_totais': 0,
                                 'consultas_marcadas_google_ads': 0,
                                 'consultas_marcadas_meta_ads': 0,
                                 'consultas_marcadas_ig_organico': 0,
                                 'consultas_marcadas_indicacao': 0,
                                 'consultas_marcadas_outros': 0,
+                                
+                                # Consultas Comparecidas
                                 'consultas_comparecidas': 0,
+                                
+                                # Fechamentos
                                 'fechamentos_totais': 0,
                                 'fechamentos_google_ads': 0,
                                 'fechamentos_meta_ads': 0,
                                 'fechamentos_ig_organico': 0,
                                 'fechamentos_indicacao': 0,
                                 'fechamentos_outros': 0,
+                                
+                                # Dados Financeiros
                                 'faturamento': 0.0,
-                                'investimento_total': 0.0,
-                                'investimento_facebook': 0.0,
-                                'investimento_google': 0.0
+                                'valor_investido_total': 0.0,
+                                'orcamento_previsto_total': 0.0,
+                                'orcamento_realizado_facebook': 0.0,
+                                'orcamento_previsto_facebook': 0.0,
+                                'orcamento_realizado_google': 0.0,
+                                'orcamento_previsto_google': 0.0,
+                                
+                                # KPIs de Conversão
+                                'conversao_csm_leads': 0.0,
+                                'conversao_csc_csm': 0.0,
+                                'conversao_fechamento_csc': 0.0,
+                                'conversao_fechamento_leads': 0.0,
+                                
+                                # KPIs Financeiros
+                                'custo_por_compra_cirurgias': 0.0,
+                                'roas': 0.0,
+                                'custo_por_lead_total': 0.0,
+                                'custo_por_consulta_marcada': 0.0,
+                                'custo_por_consulta_comparecida': 0.0,
+                                'ticket_medio': 0.0,
+                                
+                                # Taxas Ideais
+                                'taxa_ideal_csm': 10.0,
+                                'taxa_ideal_csc': 50.0,
+                                'taxa_ideal_fechamentos': 40.0
                             }
                         
                         # Converte o valor para o tipo correto

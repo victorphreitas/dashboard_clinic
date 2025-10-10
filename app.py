@@ -4,11 +4,12 @@ import pandas as pd
 import os
 from dotenv import load_dotenv
 from database import db_manager, cliente_crud, dados_crud
-from auth import AuthManager, show_auth_page, show_logout_button, show_admin_panel, show_admin_register_clinic_form
+from auth import AuthManager, show_auth_page, show_logout_button, show_admin_panel, show_admin_register_clinic_form, show_clinic_management_panel
 from dashboard import (
     create_executive_summary, create_kpi_cards, create_funnel_analysis, create_revenue_analysis,
     create_channel_analysis, create_cost_analysis, create_monthly_trends,
-    create_insights_section, load_data_from_database
+    create_insights_section, load_data_from_database, create_conversion_analysis, create_budget_analysis,
+    create_admin_consolidated_dashboard
 )
 
 # Carregar variáveis de ambiente
@@ -51,6 +52,14 @@ def main_dashboard():
         if selected_cliente_id == 'admin_register':
             # Mostrar formulário de cadastro de clínica
             show_admin_register_clinic_form()
+            return
+        elif selected_cliente_id == 'clinic_management':
+            # Mostrar painel de gerenciamento de clínicas
+            show_clinic_management_panel()
+            return
+        elif selected_cliente_id == 'admin_dashboard':
+            # Mostrar dashboard consolidado do administrador
+            create_admin_consolidated_dashboard()
             return
         elif selected_cliente_id:
             cliente_id = selected_cliente_id
@@ -123,7 +132,7 @@ def main_dashboard():
     st.sidebar.title("Filtros de Período")
     
     # Meses ativos disponíveis para seleção
-    meses_ativos = df[(df['Leads_Totais'] > 0) | (df['Faturamento'] > 0) | (df['Investimento_Total'] > 0)]['Meses'].tolist()
+    meses_ativos = df[(df['Leads_Totais'] > 0) | (df['Faturamento'] > 0) | (df['Valor_Investido_Total'] > 0)]['Meses'].tolist()
     
     if not meses_ativos:
         st.error("Nenhum dado ativo encontrado para esta clínica.")
@@ -149,6 +158,14 @@ def main_dashboard():
     st.markdown("---")
     create_kpi_cards(df_filtrado)
     st.markdown("---")
+    
+    # Novas análises do formato atualizado
+    create_conversion_analysis(df_filtrado)
+    st.markdown("---")
+    create_budget_analysis(df_filtrado)
+    st.markdown("---")
+    
+    # Análises existentes
     create_funnel_analysis(df_filtrado)
     st.markdown("---")
     create_revenue_analysis(df_filtrado)

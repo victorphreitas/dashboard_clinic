@@ -139,6 +139,75 @@ class ClienteCRUD:
             return []
         finally:
             self.db_manager.close_session(session)
+    
+    def update_cliente(self, cliente_id: int, **kwargs) -> bool:
+        """Atualiza dados de um cliente"""
+        session = self.db_manager.get_session()
+        try:
+            cliente = session.query(Cliente).filter(Cliente.id == cliente_id).first()
+            if not cliente:
+                return False
+            
+            # Atualiza apenas os campos fornecidos
+            for key, value in kwargs.items():
+                if hasattr(cliente, key) and value is not None:
+                    if key == 'senha' and value:
+                        # Hash da nova senha
+                        setattr(cliente, 'senha_hash', self.hash_password(value))
+                    else:
+                        setattr(cliente, key, value)
+            
+            cliente.data_atualizacao = datetime.utcnow()
+            session.commit()
+            return True
+        except SQLAlchemyError as e:
+            session.rollback()
+            print(f"❌ Erro ao atualizar cliente: {e}")
+            return False
+        finally:
+            self.db_manager.close_session(session)
+    
+    def delete_cliente(self, cliente_id: int) -> bool:
+        """Remove um cliente (soft delete)"""
+        session = self.db_manager.get_session()
+        try:
+            cliente = session.query(Cliente).filter(Cliente.id == cliente_id).first()
+            if not cliente:
+                return False
+            
+            # Soft delete - marca como inativo
+            cliente.ativo = False
+            cliente.data_atualizacao = datetime.utcnow()
+            session.commit()
+            return True
+        except SQLAlchemyError as e:
+            session.rollback()
+            print(f"❌ Erro ao deletar cliente: {e}")
+            return False
+        finally:
+            self.db_manager.close_session(session)
+    
+    def hard_delete_cliente(self, cliente_id: int) -> bool:
+        """Remove um cliente permanentemente (hard delete)"""
+        session = self.db_manager.get_session()
+        try:
+            cliente = session.query(Cliente).filter(Cliente.id == cliente_id).first()
+            if not cliente:
+                return False
+            
+            # Remove dados relacionados primeiro (cascade)
+            session.query(DadosDashboard).filter(DadosDashboard.cliente_id == cliente_id).delete()
+            
+            # Remove o cliente
+            session.delete(cliente)
+            session.commit()
+            return True
+        except SQLAlchemyError as e:
+            session.rollback()
+            print(f"❌ Erro ao deletar cliente permanentemente: {e}")
+            return False
+        finally:
+            self.db_manager.close_session(session)
 
 class DadosDashboardCRUD:
     """Operações CRUD para a tabela de dados do dashboard"""
@@ -225,9 +294,12 @@ class DadosDashboardCRUD:
             'Fechamentos_Outros': [d.fechamentos_outros for d in dados],
             
             'Faturamento': [d.faturamento for d in dados],
-            'Investimento_Total': [d.investimento_total for d in dados],
-            'Investimento_Facebook': [d.investimento_facebook for d in dados],
-            'Investimento_Google': [d.investimento_google for d in dados],
+            'Valor_Investido_Total': [d.valor_investido_total for d in dados],
+            'Orcamento_Previsto_Total': [d.orcamento_previsto_total for d in dados],
+            'Orcamento_Realizado_Facebook': [d.orcamento_realizado_facebook for d in dados],
+            'Orcamento_Previsto_Facebook': [d.orcamento_previsto_facebook for d in dados],
+            'Orcamento_Realizado_Google': [d.orcamento_realizado_google for d in dados],
+            'Orcamento_Previsto_Google': [d.orcamento_previsto_google for d in dados],
         }
         
         df = pd.DataFrame(data)
@@ -253,20 +325,28 @@ class DadosDashboardCRUD:
         return df
     
     def _calculate_kpis(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Calcula KPIs para o DataFrame"""
+        """Calcula KPIs para o DataFrame conforme novo formato"""
         def safe_divide(numerator, denominator):
             return np.where(denominator != 0, numerator / denominator, 0)
 
-        df['Conversao_Leads_Csm'] = safe_divide(df['Consultas_Marcadas_Totais'], df['Leads_Totais']) * 100
-        df['Conversao_Csm_Csc'] = safe_divide(df['Consultas_Comparecidas'], df['Consultas_Marcadas_Totais']) * 100
-        df['Conversao_Csc_Fechamento'] = safe_divide(df['Fechamentos_Totais'], df['Consultas_Comparecidas']) * 100
-        df['Conversao_Leads_Fechamento'] = safe_divide(df['Fechamentos_Totais'], df['Leads_Totais']) * 100
-        df['Custo_por_Compra'] = safe_divide(df['Investimento_Total'], df['Fechamentos_Totais'])
-        df['ROAS'] = safe_divide(df['Faturamento'], df['Investimento_Total'])
-        df['Custo_por_Lead'] = safe_divide(df['Investimento_Total'], df['Leads_Totais'])
-        df['Custo_por_Consulta_Marcada'] = safe_divide(df['Investimento_Total'], df['Consultas_Marcadas_Totais'])
-        df['Custo_por_Consulta_Comparecida'] = safe_divide(df['Investimento_Total'], df['Consultas_Comparecidas'])
+        # KPIs de conversão (em percentual)
+        df['Conversao_Csm_Leads'] = safe_divide(df['Consultas_Marcadas_Totais'], df['Leads_Totais']) * 100
+        df['Conversao_Csc_Csm'] = safe_divide(df['Consultas_Comparecidas'], df['Consultas_Marcadas_Totais']) * 100
+        df['Conversao_Fechamento_Csc'] = safe_divide(df['Fechamentos_Totais'], df['Consultas_Comparecidas']) * 100
+        df['Conversao_Fechamento_Leads'] = safe_divide(df['Fechamentos_Totais'], df['Leads_Totais']) * 100
+        
+        # KPIs financeiros
+        df['Custo_por_Compra_Cirurgias'] = safe_divide(df['Valor_Investido_Total'], df['Fechamentos_Totais'])
+        df['ROAS'] = safe_divide(df['Faturamento'], df['Valor_Investido_Total'])
+        df['Custo_por_Lead_Total'] = safe_divide(df['Valor_Investido_Total'], df['Leads_Totais'])
+        df['Custo_por_Consulta_Marcada'] = safe_divide(df['Valor_Investido_Total'], df['Consultas_Marcadas_Totais'])
+        df['Custo_por_Consulta_Comparecida'] = safe_divide(df['Valor_Investido_Total'], df['Consultas_Comparecidas'])
         df['Ticket_Medio'] = safe_divide(df['Faturamento'], df['Fechamentos_Totais'])
+        
+        # Taxas ideais (thresholds)
+        df['Taxa_Ideal_Csm'] = 10.0  # Csm. = Consultas Marcadas >10%
+        df['Taxa_Ideal_Csc'] = 50.0  # Csc. = Consultas Comparecidas >50%
+        df['Taxa_Ideal_Fechamentos'] = 40.0  # Fechamentos >40%
         
         # Substitui valores infinitos e NaN por 0
         df = df.replace([np.inf, -np.inf, np.nan], 0)
@@ -312,8 +392,211 @@ class DadosDashboardCRUD:
         finally:
             self.db_manager.close_session(session)
 
+class AdminDashboardCRUD:
+    """Operações CRUD para dashboard consolidado do administrador"""
+    
+    def __init__(self, db_manager: DatabaseManager):
+        self.db_manager = db_manager
+    
+    def get_consolidated_metrics(self) -> Dict[str, Any]:
+        """Retorna métricas consolidadas de todas as clínicas"""
+        session = self.db_manager.get_session()
+        try:
+            # Busca todos os dados de todas as clínicas (exceto admin)
+            dados = session.query(DadosDashboard).join(Cliente).filter(
+                Cliente.is_admin == False,
+                Cliente.ativo == True
+            ).all()
+            
+            if not dados:
+                return {
+                    'total_leads': 0,
+                    'total_consultas_marcadas': 0,
+                    'total_consultas_comparecidas': 0,
+                    'total_fechamentos': 0,
+                    'total_faturamento': 0,
+                    'total_investimento': 0,
+                    'roas_medio': 0,
+                    'custo_por_lead_medio': 0,
+                    'ticket_medio': 0,
+                    'clinicas_ativas': 0,
+                    'meses_ativos': 0
+                }
+            
+            # Agregação dos dados
+            total_leads = sum(d.leads_totais for d in dados)
+            total_consultas_marcadas = sum(d.consultas_marcadas_totais for d in dados)
+            total_consultas_comparecidas = sum(d.consultas_comparecidas for d in dados)
+            total_fechamentos = sum(d.fechamentos_totais for d in dados)
+            total_faturamento = sum(d.faturamento for d in dados)
+            total_investimento = sum(d.valor_investido_total for d in dados)
+            
+            # Cálculos de médias
+            roas_medio = (total_faturamento / total_investimento) if total_investimento > 0 else 0
+            custo_por_lead_medio = (total_investimento / total_leads) if total_leads > 0 else 0
+            ticket_medio = (total_faturamento / total_fechamentos) if total_fechamentos > 0 else 0
+            
+            # Contagem de clínicas ativas
+            clinicas_ativas = len(set(d.cliente_id for d in dados))
+            
+            # Contagem de meses ativos
+            meses_ativos = len(set((d.mes, d.ano) for d in dados))
+            
+            return {
+                'total_leads': total_leads,
+                'total_consultas_marcadas': total_consultas_marcadas,
+                'total_consultas_comparecidas': total_consultas_comparecidas,
+                'total_fechamentos': total_fechamentos,
+                'total_faturamento': total_faturamento,
+                'total_investimento': total_investimento,
+                'roas_medio': roas_medio,
+                'custo_por_lead_medio': custo_por_lead_medio,
+                'ticket_medio': ticket_medio,
+                'clinicas_ativas': clinicas_ativas,
+                'meses_ativos': meses_ativos
+            }
+            
+        except SQLAlchemyError as e:
+            print(f"❌ Erro ao buscar métricas consolidadas: {e}")
+            return {}
+        finally:
+            self.db_manager.close_session(session)
+    
+    def get_clinics_comparison(self) -> List[Dict[str, Any]]:
+        """Retorna dados comparativos entre clínicas"""
+        session = self.db_manager.get_session()
+        try:
+            # Busca dados agrupados por clínica
+            from sqlalchemy import func
+            
+            query = session.query(
+                Cliente.nome_da_clinica,
+                Cliente.nome,
+                func.sum(DadosDashboard.leads_totais).label('total_leads'),
+                func.sum(DadosDashboard.consultas_marcadas_totais).label('total_consultas_marcadas'),
+                func.sum(DadosDashboard.consultas_comparecidas).label('total_consultas_comparecidas'),
+                func.sum(DadosDashboard.fechamentos_totais).label('total_fechamentos'),
+                func.sum(DadosDashboard.faturamento).label('total_faturamento'),
+                func.sum(DadosDashboard.valor_investido_total).label('total_investimento'),
+                func.avg(DadosDashboard.roas).label('roas_medio'),
+                func.avg(DadosDashboard.custo_por_lead_total).label('custo_por_lead_medio'),
+                func.avg(DadosDashboard.ticket_medio).label('ticket_medio')
+            ).join(DadosDashboard).filter(
+                Cliente.is_admin == False,
+                Cliente.ativo == True
+            ).group_by(Cliente.id, Cliente.nome_da_clinica, Cliente.nome)
+            
+            results = query.all()
+            
+            clinicas = []
+            for result in results:
+                clinicas.append({
+                    'nome_da_clinica': result.nome_da_clinica,
+                    'nome': result.nome,
+                    'total_leads': result.total_leads or 0,
+                    'total_consultas_marcadas': result.total_consultas_marcadas or 0,
+                    'total_consultas_comparecidas': result.total_consultas_comparecidas or 0,
+                    'total_fechamentos': result.total_fechamentos or 0,
+                    'total_faturamento': result.total_faturamento or 0,
+                    'total_investimento': result.total_investimento or 0,
+                    'roas_medio': result.roas_medio or 0,
+                    'custo_por_lead_medio': result.custo_por_lead_medio or 0,
+                    'ticket_medio': result.ticket_medio or 0
+                })
+            
+            return clinicas
+            
+        except SQLAlchemyError as e:
+            print(f"❌ Erro ao buscar comparação de clínicas: {e}")
+            return []
+        finally:
+            self.db_manager.close_session(session)
+    
+    def get_monthly_evolution(self) -> List[Dict[str, Any]]:
+        """Retorna evolução mensal consolidada"""
+        session = self.db_manager.get_session()
+        try:
+            from sqlalchemy import func
+            
+            query = session.query(
+                DadosDashboard.mes,
+                DadosDashboard.ano,
+                func.sum(DadosDashboard.leads_totais).label('total_leads'),
+                func.sum(DadosDashboard.consultas_marcadas_totais).label('total_consultas_marcadas'),
+                func.sum(DadosDashboard.consultas_comparecidas).label('total_consultas_comparecidas'),
+                func.sum(DadosDashboard.fechamentos_totais).label('total_fechamentos'),
+                func.sum(DadosDashboard.faturamento).label('total_faturamento'),
+                func.sum(DadosDashboard.valor_investido_total).label('total_investimento')
+            ).join(Cliente).filter(
+                Cliente.is_admin == False,
+                Cliente.ativo == True
+            ).group_by(DadosDashboard.mes, DadosDashboard.ano).order_by(
+                DadosDashboard.ano, DadosDashboard.mes
+            )
+            
+            results = query.all()
+            
+            meses = []
+            for result in results:
+                meses.append({
+                    'mes': result.mes,
+                    'ano': result.ano,
+                    'total_leads': result.total_leads or 0,
+                    'total_consultas_marcadas': result.total_consultas_marcadas or 0,
+                    'total_consultas_comparecidas': result.total_consultas_comparecidas or 0,
+                    'total_fechamentos': result.total_fechamentos or 0,
+                    'total_faturamento': result.total_faturamento or 0,
+                    'total_investimento': result.total_investimento or 0
+                })
+            
+            return meses
+            
+        except SQLAlchemyError as e:
+            print(f"❌ Erro ao buscar evolução mensal: {e}")
+            return []
+        finally:
+            self.db_manager.close_session(session)
+    
+    def get_channel_analysis(self) -> Dict[str, Any]:
+        """Retorna análise por canal de marketing"""
+        session = self.db_manager.get_session()
+        try:
+            from sqlalchemy import func
+            
+            query = session.query(
+                func.sum(DadosDashboard.leads_google_ads).label('leads_google'),
+                func.sum(DadosDashboard.leads_meta_ads).label('leads_meta'),
+                func.sum(DadosDashboard.leads_instagram_organico).label('leads_instagram'),
+                func.sum(DadosDashboard.leads_indicacao).label('leads_indicacao'),
+                func.sum(DadosDashboard.leads_origem_desconhecida).label('leads_desconhecida'),
+                func.sum(DadosDashboard.orcamento_realizado_google).label('investimento_google'),
+                func.sum(DadosDashboard.orcamento_realizado_facebook).label('investimento_facebook')
+            ).join(Cliente).filter(
+                Cliente.is_admin == False,
+                Cliente.ativo == True
+            )
+            
+            result = query.first()
+            
+            return {
+                'leads_google': result.leads_google or 0,
+                'leads_meta': result.leads_meta or 0,
+                'leads_instagram': result.leads_instagram or 0,
+                'leads_indicacao': result.leads_indicacao or 0,
+                'leads_desconhecida': result.leads_desconhecida or 0,
+                'investimento_google': result.investimento_google or 0,
+                'investimento_facebook': result.investimento_facebook or 0
+            }
+            
+        except SQLAlchemyError as e:
+            print(f"❌ Erro ao buscar análise de canais: {e}")
+            return {}
+        finally:
+            self.db_manager.close_session(session)
+
 # Instância global do gerenciador de banco
 db_manager = DatabaseManager()
 cliente_crud = ClienteCRUD(db_manager)
 dados_crud = DadosDashboardCRUD(db_manager)
+admin_dashboard_crud = AdminDashboardCRUD(db_manager)
 

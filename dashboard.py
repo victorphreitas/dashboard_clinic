@@ -17,9 +17,8 @@ def create_kpi_cards(df_filtered):
     
     st.subheader(f"📊 KPIs Principais - Período Selecionado")
     
-    # Filtra apenas meses com atividade (aqui deve ser usado apenas para cálculo de média,
-    # pois o df_filtered já deve ter apenas meses relevantes, mas mantemos a coerência)
-    df_metrics = df_ativos[(df_ativos['Leads_Totais'] > 0) | (df_ativos['Faturamento'] > 0) | (df_ativos['Investimento_Total'] > 0)]
+    # Filtra apenas meses com atividade (novo formato)
+    df_metrics = df_ativos[(df_ativos['Leads_Totais'] > 0) | (df_ativos['Faturamento'] > 0) | (df_ativos['Valor_Investido_Total'] > 0)]
     
     if df_metrics.empty:
         st.warning("Nenhum dado ativo neste período.")
@@ -28,7 +27,7 @@ def create_kpi_cards(df_filtered):
     total_leads = df_metrics['Leads_Totais'].sum()
     total_faturamento = df_metrics['Faturamento'].sum()
     total_fechamentos = df_metrics['Fechamentos_Totais'].sum()
-    total_investimento = df_metrics['Investimento_Total'].sum()
+    total_investimento = df_metrics['Valor_Investido_Total'].sum()
     total_consultas_marcadas = df_metrics['Consultas_Marcadas_Totais'].sum()
     total_consultas_comparecidas = df_metrics['Consultas_Comparecidas'].sum()
     
@@ -82,7 +81,7 @@ def create_funnel_analysis(df_filtered):
     """Análise do funil de conversão"""
     st.subheader("🔄 Análise do Funil de Conversão")
     
-    df_ativos = df_filtered[(df_filtered['Leads_Totais'] > 0) | (df_filtered['Faturamento'] > 0) | (df_filtered['Investimento_Total'] > 0)]
+    df_ativos = df_filtered[(df_filtered['Leads_Totais'] > 0) | (df_filtered['Faturamento'] > 0) | (df_filtered['Valor_Investido_Total'] > 0)]
     
     if df_ativos.empty:
         st.info("Nenhum Lead registrado no período selecionado.")
@@ -151,7 +150,7 @@ def create_revenue_analysis(df_filtered):
         ))
         fig_revenue.add_trace(go.Scatter(
             x=df_ativos['Meses'],
-            y=df_ativos['Investimento_Total'],
+            y=df_ativos['Valor_Investido_Total'],
             name='Investimento Total',
             mode='lines+markers',
             line=dict(color='#ff7f0e', width=3),
@@ -196,7 +195,7 @@ def create_channel_analysis(df_filtered):
     """Análise de performance por canal"""
     st.subheader("📱 Performance por Canal de Aquisição")
     
-    df_ativos = df_filtered[(df_filtered['Leads_Totais'] > 0) | (df_filtered['Faturamento'] > 0) | (df_filtered['Investimento_Total'] > 0)]
+    df_ativos = df_filtered[(df_filtered['Leads_Totais'] > 0) | (df_filtered['Faturamento'] > 0) | (df_filtered['Valor_Investido_Total'] > 0)]
     
     if df_ativos.empty:
         st.info("Nenhum dado de Leads disponível no período selecionado.")
@@ -257,7 +256,7 @@ def create_cost_analysis(df_filtered):
     """Análise de custos e eficiência"""
     st.subheader("💸 Análise de Custos e Eficiência")
     
-    df_ativos = df_filtered[(df_filtered['Leads_Totais'] > 0) | (df_filtered['Faturamento'] > 0) | (df_filtered['Investimento_Total'] > 0)]
+    df_ativos = df_filtered[(df_filtered['Leads_Totais'] > 0) | (df_filtered['Faturamento'] > 0) | (df_filtered['Valor_Investido_Total'] > 0)]
     
     if df_ativos.empty:
         st.info("Nenhum dado ativo para análise de custos no período selecionado.")
@@ -266,8 +265,8 @@ def create_cost_analysis(df_filtered):
     col1, col2, col3 = st.columns(3)
     
     # CPL Médio (ignorando zeros/indefinidos)
-    cpl_medio = df_ativos['Custo_por_Lead'].replace(0, np.nan).mean()
-    cpl_min = df_ativos['Custo_por_Lead'].replace(0, np.nan).min()
+    cpl_medio = df_ativos['Custo_por_Lead_Total'].replace(0, np.nan).mean()
+    cpl_min = df_ativos['Custo_por_Lead_Total'].replace(0, np.nan).min()
     with col1:
         st.metric(
             "Custo por Lead Médio",
@@ -276,8 +275,8 @@ def create_cost_analysis(df_filtered):
         )
     
     # CPA Médio (ignorando zeros/indefinidos)
-    cpa_medio = df_ativos['Custo_por_Compra'].replace(0, np.nan).mean()
-    cpa_min = df_ativos['Custo_por_Compra'].replace(0, np.nan).min()
+    cpa_medio = df_ativos['Custo_por_Compra_Cirurgias'].replace(0, np.nan).mean()
+    cpa_min = df_ativos['Custo_por_Compra_Cirurgias'].replace(0, np.nan).min()
     with col2:
         st.metric(
             "Custo por Compra Médio",
@@ -299,12 +298,12 @@ def create_cost_analysis(df_filtered):
     fig_costs = go.Figure()
     
     fig_costs.add_trace(go.Scatter(
-        x=df_ativos['Meses'], y=df_ativos['Custo_por_Lead'],
+        x=df_ativos['Meses'], y=df_ativos['Custo_por_Lead_Total'],
         name='Custo por Lead', line=dict(color='#1f77b4', width=3)
     ))
     
     fig_costs.add_trace(go.Scatter(
-        x=df_ativos['Meses'], y=df_ativos['Custo_por_Compra'],
+        x=df_ativos['Meses'], y=df_ativos['Custo_por_Compra_Cirurgias'],
         name='Custo por Compra', line=dict(color='#ff7f0e', width=3)
     ))
     
@@ -325,7 +324,7 @@ def create_monthly_trends(df_filtered):
     """Tendências mensais e sazonais"""
     st.subheader("📈 Tendências e Sazonalidade")
     
-    df_ativos = df_filtered[(df_filtered['Leads_Totais'] > 0) | (df_filtered['Faturamento'] > 0) | (df_filtered['Investimento_Total'] > 0)]
+    df_ativos = df_filtered[(df_filtered['Leads_Totais'] > 0) | (df_filtered['Faturamento'] > 0) | (df_filtered['Valor_Investido_Total'] > 0)]
     
     if df_ativos.empty:
         st.info("Nenhum dado ativo para tendências no período selecionado.")
@@ -364,11 +363,421 @@ def create_monthly_trends(df_filtered):
     fig_trends.update_layout(height=600, showlegend=False)
     st.plotly_chart(fig_trends, use_container_width=True)
 
+def create_conversion_analysis(df_filtered):
+    """Cria análise de conversão com novos KPIs"""
+    st.subheader("🔄 Análise de Conversão - Novo Formato")
+    
+    df_ativos = df_filtered[(df_filtered['Leads_Totais'] > 0) | (df_filtered['Faturamento'] > 0) | (df_filtered['Valor_Investido_Total'] > 0)]
+    
+    if df_ativos.empty:
+        st.warning("Nenhum dado ativo para análise de conversão.")
+        return
+    
+    # KPIs de conversão
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        conversao_csm_leads = df_ativos['Conversao_Csm_Leads'].mean()
+        st.metric(
+            label="% Conversão Csm./Leads",
+            value=f"{conversao_csm_leads:.1f}%",
+            help="% de leads que se tornaram consultas marcadas"
+        )
+    
+    with col2:
+        conversao_csc_csm = df_ativos['Conversao_Csc_Csm'].mean()
+        st.metric(
+            label="% Conversão Csc./Csm.",
+            value=f"{conversao_csc_csm:.1f}%",
+            help="% de consultas marcadas que compareceram"
+        )
+    
+    with col3:
+        conversao_fechamento_csc = df_ativos['Conversao_Fechamento_Csc'].mean()
+        st.metric(
+            label="% Conversão Fechamento/Csc.",
+            value=f"{conversao_fechamento_csc:.1f}%",
+            help="% de consultas comparecidas que viraram fechamentos"
+        )
+    
+    with col4:
+        conversao_fechamento_leads = df_ativos['Conversao_Fechamento_Leads'].mean()
+        st.metric(
+            label="% Conversão Fechamento/Leads",
+            value=f"{conversao_fechamento_leads:.1f}%",
+            help="% de leads que viraram fechamentos"
+        )
+    
+    # Taxas ideais vs reais
+    st.markdown("### 📊 Taxas Ideais vs Reais")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        taxa_ideal_csm = 10.0
+        taxa_real_csm = conversao_csm_leads
+        status_csm = "🟢" if taxa_real_csm >= taxa_ideal_csm else "🔴"
+        st.metric(
+            label=f"{status_csm} Consultas Marcadas",
+            value=f"{taxa_real_csm:.1f}%",
+            delta=f"Meta: {taxa_ideal_csm}%",
+            help="Taxa ideal: >10%"
+        )
+    
+    with col2:
+        taxa_ideal_csc = 50.0
+        taxa_real_csc = conversao_csc_csm
+        status_csc = "🟢" if taxa_real_csc >= taxa_ideal_csc else "🔴"
+        st.metric(
+            label=f"{status_csc} Consultas Comparecidas",
+            value=f"{taxa_real_csc:.1f}%",
+            delta=f"Meta: {taxa_ideal_csc}%",
+            help="Taxa ideal: >50%"
+        )
+    
+    with col3:
+        taxa_ideal_fechamentos = 40.0
+        taxa_real_fechamentos = conversao_fechamento_csc
+        status_fechamentos = "🟢" if taxa_real_fechamentos >= taxa_ideal_fechamentos else "🔴"
+        st.metric(
+            label=f"{status_fechamentos} Fechamentos",
+            value=f"{taxa_real_fechamentos:.1f}%",
+            delta=f"Meta: {taxa_ideal_fechamentos}%",
+            help="Taxa ideal: >40%"
+        )
+
+def create_budget_analysis(df_filtered):
+    """Cria análise de orçamento com novos campos"""
+    st.subheader("💰 Análise de Orçamento - Novo Formato")
+    
+    df_ativos = df_filtered[(df_filtered['Leads_Totais'] > 0) | (df_filtered['Faturamento'] > 0) | (df_filtered['Valor_Investido_Total'] > 0)]
+    
+    if df_ativos.empty:
+        st.warning("Nenhum dado ativo para análise de orçamento.")
+        return
+    
+    # Resumo de orçamento
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        orcamento_previsto_total = df_ativos['Orcamento_Previsto_Total'].sum()
+        st.metric(
+            label="Orçamento Previsto Total",
+            value=f"R$ {orcamento_previsto_total:,.0f}".replace(",", "."),
+            help="Orçamento total planejado"
+        )
+    
+    with col2:
+        valor_investido_total = df_ativos['Valor_Investido_Total'].sum()
+        st.metric(
+            label="Valor Investido Total",
+            value=f"R$ {valor_investido_total:,.0f}".replace(",", "."),
+            help="Valor total realmente investido"
+        )
+    
+    with col3:
+        orcamento_facebook = df_ativos['Orcamento_Realizado_Facebook'].sum()
+        st.metric(
+            label="Facebook Ads (Realizado)",
+            value=f"R$ {orcamento_facebook:,.0f}".replace(",", "."),
+            help="Investimento realizado no Facebook"
+        )
+    
+    with col4:
+        orcamento_google = df_ativos['Orcamento_Realizado_Google'].sum()
+        st.metric(
+            label="Google Ads (Realizado)",
+            value=f"R$ {orcamento_google:,.0f}".replace(",", "."),
+            help="Investimento realizado no Google"
+        )
+    
+    # Gráfico de orçamento vs realizado
+    if len(df_ativos) > 1:
+        fig_budget = go.Figure()
+        
+        fig_budget.add_trace(go.Bar(
+            x=df_ativos['Meses'],
+            y=df_ativos['Orcamento_Previsto_Total'],
+            name='Orçamento Previsto',
+            marker_color='#1f77b4'
+        ))
+        
+        fig_budget.add_trace(go.Bar(
+            x=df_ativos['Meses'],
+            y=df_ativos['Valor_Investido_Total'],
+            name='Valor Investido',
+            marker_color='#ff7f0e'
+        ))
+        
+        fig_budget.update_layout(
+            title="Orçamento Previsto vs Valor Investido",
+            xaxis_title="Meses",
+            yaxis_title="Valor (R$)",
+            barmode='group',
+            height=400
+        )
+        
+        st.plotly_chart(fig_budget, use_container_width=True)
+
+def create_admin_consolidated_dashboard():
+    """Cria dashboard consolidado para administrador"""
+    from database import admin_dashboard_crud
+    
+    st.title("👑 Dashboard Administrativo - Visão Consolidada")
+    
+    # Botões de navegação
+    col_nav1, col_nav2, col_nav3 = st.columns(3)
+    
+    with col_nav1:
+        if st.button("➕ Nova Clínica", use_container_width=True, key="nav_nova_from_dashboard"):
+            st.session_state['show_admin_register'] = True
+            st.session_state['show_admin_dashboard'] = False
+            st.rerun()
+    
+    with col_nav2:
+        if st.button("🏥 Gerenciar Clínicas", use_container_width=True, key="nav_gerenciar_from_dashboard"):
+            st.session_state['show_clinic_management'] = True
+            st.session_state['show_admin_dashboard'] = False
+            st.rerun()
+    
+    with col_nav3:
+        if st.button("👥 Ver Clínicas", use_container_width=True, key="nav_ver_from_dashboard"):
+            st.session_state['show_admin_dashboard'] = False
+            st.rerun()
+    
+    st.markdown("---")
+    
+    # Busca métricas consolidadas
+    metrics = admin_dashboard_crud.get_consolidated_metrics()
+    
+    if not metrics or metrics.get('clinicas_ativas', 0) == 0:
+        st.warning("Nenhuma clínica ativa encontrada para exibir métricas consolidadas.")
+        return
+    
+    # KPIs principais consolidados
+    st.subheader("📊 KPIs Consolidados - Todas as Clínicas")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric(
+            label="Total de Leads",
+            value=f"{metrics['total_leads']:,.0f}".replace(",", "."),
+            help="Soma de todos os leads de todas as clínicas"
+        )
+    
+    with col2:
+        st.metric(
+            label="Faturamento Total",
+            value=f"R$ {metrics['total_faturamento']:,.0f}".replace(",", "."),
+            help="Soma do faturamento de todas as clínicas"
+        )
+    
+    with col3:
+        st.metric(
+            label="ROAS Médio",
+            value=f"{metrics['roas_medio']:.1f}x",
+            help="Retorno médio sobre investimento"
+        )
+    
+    with col4:
+        st.metric(
+            label="Clínicas Ativas",
+            value=f"{metrics['clinicas_ativas']}",
+            help="Número de clínicas com dados ativos"
+        )
+    
+    # Segunda linha de KPIs
+    col5, col6, col7, col8 = st.columns(4)
+    
+    with col5:
+        st.metric(
+            label="Consultas Marcadas",
+            value=f"{metrics['total_consultas_marcadas']:,.0f}".replace(",", "."),
+            help="Total de consultas marcadas"
+        )
+    
+    with col6:
+        st.metric(
+            label="Fechamentos",
+            value=f"{metrics['total_fechamentos']:,.0f}".replace(",", "."),
+            help="Total de fechamentos realizados"
+        )
+    
+    with col7:
+        st.metric(
+            label="Custo por Lead Médio",
+            value=f"R$ {metrics['custo_por_lead_medio']:,.0f}".replace(",", "."),
+            help="Custo médio por lead gerado"
+        )
+    
+    with col8:
+        st.metric(
+            label="Ticket Médio",
+            value=f"R$ {metrics['ticket_medio']:,.0f}".replace(",", "."),
+            help="Valor médio por venda"
+        )
+    
+    st.markdown("---")
+    
+    # Gráfico de evolução mensal consolidada
+    st.subheader("📈 Evolução Mensal Consolidada")
+    
+    monthly_data = admin_dashboard_crud.get_monthly_evolution()
+    if monthly_data:
+        df_monthly = pd.DataFrame(monthly_data)
+        
+        # Ordena os meses corretamente
+        mes_order = {
+            'Janeiro': 1, 'Fevereiro': 2, 'Março': 3, 'Abril': 4,
+            'Maio': 5, 'Junho': 6, 'Julho': 7, 'Agosto': 8,
+            'Setembro': 9, 'Outubro': 10, 'Novembro': 11, 'Dezembro': 12
+        }
+        df_monthly['mes_order'] = df_monthly['mes'].map(mes_order)
+        df_monthly = df_monthly.sort_values(['ano', 'mes_order']).drop('mes_order', axis=1)
+        
+        # Cria gráfico de evolução
+        fig_evolution = go.Figure()
+        
+        fig_evolution.add_trace(go.Scatter(
+            x=df_monthly['mes'] + ' ' + df_monthly['ano'].astype(str),
+            y=df_monthly['total_leads'],
+            name='Leads',
+            line=dict(color='#1f77b4', width=3)
+        ))
+        
+        fig_evolution.add_trace(go.Scatter(
+            x=df_monthly['mes'] + ' ' + df_monthly['ano'].astype(str),
+            y=df_monthly['total_faturamento'],
+            name='Faturamento',
+            line=dict(color='#2ca02c', width=3),
+            yaxis='y2'
+        ))
+        
+        fig_evolution.update_layout(
+            title="Evolução Mensal - Leads e Faturamento",
+            xaxis_title="Meses",
+            yaxis_title="Leads",
+            yaxis2=dict(title="Faturamento (R$)", overlaying="y", side="right"),
+            height=400
+        )
+        
+        st.plotly_chart(fig_evolution, use_container_width=True)
+    else:
+        st.info("Nenhum dado mensal encontrado para exibir evolução.")
+    
+    st.markdown("---")
+    
+    # Comparativo entre clínicas
+    st.subheader("🏥 Comparativo entre Clínicas")
+    
+    clinics_data = admin_dashboard_crud.get_clinics_comparison()
+    if clinics_data:
+        df_clinics = pd.DataFrame(clinics_data)
+        
+        # Gráfico de barras comparativo
+        fig_comparison = go.Figure()
+        
+        fig_comparison.add_trace(go.Bar(
+            x=df_clinics['nome_da_clinica'],
+            y=df_clinics['total_leads'],
+            name='Leads',
+            marker_color='#1f77b4'
+        ))
+        
+        fig_comparison.add_trace(go.Bar(
+            x=df_clinics['nome_da_clinica'],
+            y=df_clinics['total_faturamento'],
+            name='Faturamento',
+            marker_color='#2ca02c',
+            yaxis='y2'
+        ))
+        
+        fig_comparison.update_layout(
+            title="Comparativo de Performance entre Clínicas",
+            xaxis_title="Clínicas",
+            yaxis_title="Leads",
+            yaxis2=dict(title="Faturamento (R$)", overlaying="y", side="right"),
+            barmode='group',
+            height=400
+        )
+        
+        st.plotly_chart(fig_comparison, use_container_width=True)
+        
+        # Tabela de ranking
+        st.markdown("### 🏆 Ranking de Performance")
+        
+        # Calcula ranking por faturamento
+        df_clinics_ranking = df_clinics.sort_values('total_faturamento', ascending=False)
+        
+        col_ranking1, col_ranking2 = st.columns(2)
+        
+        with col_ranking1:
+            st.markdown("**💰 Ranking por Faturamento**")
+            for i, (_, row) in enumerate(df_clinics_ranking.iterrows(), 1):
+                st.write(f"{i}º **{row['nome_da_clinica']}** - R$ {row['total_faturamento']:,.0f}".replace(",", "."))
+        
+        with col_ranking2:
+            st.markdown("**📊 Ranking por Leads**")
+            df_leads_ranking = df_clinics.sort_values('total_leads', ascending=False)
+            for i, (_, row) in enumerate(df_leads_ranking.iterrows(), 1):
+                st.write(f"{i}º **{row['nome_da_clinica']}** - {row['total_leads']:,.0f} leads".replace(",", "."))
+    else:
+        st.info("Nenhum dado de clínicas encontrado para comparação.")
+    
+    st.markdown("---")
+    
+    # Análise por canal
+    st.subheader("📊 Análise por Canal de Marketing")
+    
+    channel_data = admin_dashboard_crud.get_channel_analysis()
+    if channel_data:
+        # Gráfico de pizza para leads por canal
+        fig_pie = go.Figure(data=[go.Pie(
+            labels=['Google Ads', 'Meta Ads', 'Instagram Orgânico', 'Indicação', 'Origem Desconhecida'],
+            values=[
+                channel_data['leads_google'],
+                channel_data['leads_meta'],
+                channel_data['leads_instagram'],
+                channel_data['leads_indicacao'],
+                channel_data['leads_desconhecida']
+            ],
+            hole=0.3
+        )])
+        
+        fig_pie.update_layout(
+            title="Distribuição de Leads por Canal",
+            height=400
+        )
+        
+        st.plotly_chart(fig_pie, use_container_width=True)
+        
+        # Gráfico de investimento vs retorno
+        fig_investment = go.Figure()
+        
+        fig_investment.add_trace(go.Bar(
+            x=['Google Ads', 'Meta Ads'],
+            y=[channel_data['investimento_google'], channel_data['investimento_facebook']],
+            name='Investimento',
+            marker_color='#ff7f0e'
+        ))
+        
+        fig_investment.update_layout(
+            title="Investimento por Canal",
+            xaxis_title="Canal",
+            yaxis_title="Valor Investido (R$)",
+            height=300
+        )
+        
+        st.plotly_chart(fig_investment, use_container_width=True)
+    else:
+        st.info("Nenhum dado de canais encontrado para análise.")
+
 def create_executive_summary(df_filtered):
     """Cria seção de resumo executivo com 10 KPIs mais importantes"""
     st.subheader("🎯 Resumo Executivo - Visão Geral")
     
-    df_ativos = df_filtered[(df_filtered['Leads_Totais'] > 0) | (df_filtered['Faturamento'] > 0) | (df_filtered['Investimento_Total'] > 0)]
+    df_ativos = df_filtered[(df_filtered['Leads_Totais'] > 0) | (df_filtered['Faturamento'] > 0) | (df_filtered['Valor_Investido_Total'] > 0)]
     
     if df_ativos.empty:
         st.warning("Nenhum dado ativo para resumo executivo.")
@@ -381,7 +790,7 @@ def create_executive_summary(df_filtered):
     total_leads = df_ativos['Leads_Totais'].sum()
     total_faturamento = df_ativos['Faturamento'].sum()
     total_fechamentos = df_ativos['Fechamentos_Totais'].sum()
-    total_investimento = df_ativos['Investimento_Total'].sum()
+    total_investimento = df_ativos['Valor_Investido_Total'].sum()
     total_consultas_marcadas = df_ativos['Consultas_Marcadas_Totais'].sum()
     total_consultas_comparecidas = df_ativos['Consultas_Comparecidas'].sum()
     
@@ -399,8 +808,8 @@ def create_executive_summary(df_filtered):
         mes_anterior = df_ativos.iloc[-2]
         
         # Calcula ROAS de forma segura
-        roas_atual = mes_atual['Faturamento'] / mes_atual['Investimento_Total'] if mes_atual['Investimento_Total'] > 0 else 0
-        roas_anterior = mes_anterior['Faturamento'] / mes_anterior['Investimento_Total'] if mes_anterior['Investimento_Total'] > 0 else 0
+        roas_atual = mes_atual['Faturamento'] / mes_atual['Valor_Investido_Total'] if mes_atual['Valor_Investido_Total'] > 0 else 0
+        roas_anterior = mes_anterior['Faturamento'] / mes_anterior['Valor_Investido_Total'] if mes_anterior['Valor_Investido_Total'] > 0 else 0
         
         # Calcula variação de ROAS de forma segura
         variacao_roas = 0
