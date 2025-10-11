@@ -242,7 +242,7 @@ def process_controle_leads_data(data):
                         valor = row[mes_planilha]
                         if valor and valor != 0 and valor != '-':
                             print(f"     📅 {mes_planilha}: {valor} ({field_name})")
-                            if field_name in ['faturamento', 'investimento_total', 'investimento_facebook', 'investimento_google']:
+                            if field_name in ['faturamento', 'valor_investido_total', 'orcamento_realizado_facebook', 'orcamento_realizado_google']:
                                 # Remove formatação de moeda e converte para float
                                 if isinstance(valor, str):
                                     valor = valor.replace('R$', '').replace('.', '').replace(',', '.').strip()
@@ -398,9 +398,9 @@ def create_sample_data(clinic_name):
                 'fechamentos_indicacao': 3,
                 'fechamentos_outros': 0,
                 'faturamento': 36250.0,
-                'investimento_total': 3063.21,
-                'investimento_facebook': 1514.14,
-                'investimento_google': 1549.07
+                'valor_investido_total': 3063.21,
+                'orcamento_realizado_facebook': 1514.14,
+                'orcamento_realizado_google': 1549.07
             },
             {
                 'mes': 'Abril',
@@ -424,9 +424,9 @@ def create_sample_data(clinic_name):
                 'fechamentos_indicacao': 0,
                 'fechamentos_outros': 3,
                 'faturamento': 360050.0,
-                'investimento_total': 11730.24,
-                'investimento_facebook': 7880.25,
-                'investimento_google': 3849.99
+                'valor_investido_total': 11730.24,
+                'orcamento_realizado_facebook': 7880.25,
+                'orcamento_realizado_google': 3849.99
             }
         ]
     else:  # taynah
@@ -454,9 +454,9 @@ def create_sample_data(clinic_name):
                 'fechamentos_indicacao': 0,
                 'fechamentos_outros': 0,
                 'faturamento': 15000.0,
-                'investimento_total': 2500.0,
-                'investimento_facebook': 1500.0,
-                'investimento_google': 1000.0
+                'valor_investido_total': 2500.0,
+                'orcamento_realizado_facebook': 1500.0,
+                'orcamento_realizado_google': 1000.0
             },
             {
                 'mes': 'Fevereiro',
@@ -480,9 +480,9 @@ def create_sample_data(clinic_name):
                 'fechamentos_indicacao': 0,
                 'fechamentos_outros': 0,
                 'faturamento': 32000.0,
-                'investimento_total': 4200.0,
-                'investimento_facebook': 2500.0,
-                'investimento_google': 1700.0
+                'valor_investido_total': 4200.0,
+                'orcamento_realizado_facebook': 2500.0,
+                'orcamento_realizado_google': 1700.0
             }
         ]
     
@@ -511,7 +511,7 @@ def load_clinic_data_from_sheets(clinic_key, cliente_id):
     # Carrega novos dados
     for _, row in df.iterrows():
         # Carrega TODOS os meses, mesmo os que têm apenas faturamento
-        if row['leads_totais'] > 0 or row['faturamento'] > 0 or row['investimento_total'] > 0:
+        if row['leads_totais'] > 0 or row['faturamento'] > 0 or row['valor_investido_total'] > 0:
             dados = dados_crud.create_dados_dashboard(
                 cliente_id=cliente_id,
                 mes=row['mes'],
@@ -536,9 +536,9 @@ def load_clinic_data_from_sheets(clinic_key, cliente_id):
                 fechamentos_indicacao=int(row['fechamentos_indicacao']),
                 fechamentos_outros=int(row['fechamentos_outros']),
                 faturamento=float(row['faturamento']),
-                investimento_total=float(row['investimento_total']),
-                investimento_facebook=float(row['investimento_facebook']),
-                investimento_google=float(row['investimento_google'])
+                valor_investido_total=float(row['valor_investido_total']),
+                orcamento_realizado_facebook=float(row['orcamento_realizado_facebook']),
+                orcamento_realizado_google=float(row['orcamento_realizado_google'])
             )
             
             if dados:
@@ -627,9 +627,9 @@ def load_clinic_data_from_url(cliente):
                 fechamentos_indicacao=int(row['fechamentos_indicacao']),
                 fechamentos_outros=int(row['fechamentos_outros']),
                 faturamento=float(row['faturamento']),
-                investimento_total=float(row['investimento_total']),
-                investimento_facebook=float(row['investimento_facebook']),
-                investimento_google=float(row['investimento_google'])
+                valor_investido_total=float(row['valor_investido_total']),
+                orcamento_realizado_facebook=float(row['orcamento_realizado_facebook']),
+                orcamento_realizado_google=float(row['orcamento_realizado_google'])
             )
             
             if dados:

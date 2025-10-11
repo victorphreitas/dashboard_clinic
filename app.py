@@ -15,6 +15,10 @@ from dashboard import (
 # Carregar variáveis de ambiente
 load_dotenv()
 
+# Aplicar estilos modernos globalmente
+from styles import apply_modern_styles
+apply_modern_styles()
+
 # Configurações
 SECRET_KEY = os.getenv('SECRET_KEY', 'chave_padrao_para_desenvolvimento')
 DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///prestige_clinic.db')

@@ -521,104 +521,105 @@ def create_budget_analysis(df_filtered):
 
 def create_admin_consolidated_dashboard():
     """Cria dashboard consolidado para administrador"""
-    from database import admin_dashboard_crud
+    from database import admin_dashboard_crud, cliente_crud
+    from styles import apply_modern_styles, create_modern_header, create_metric_card, create_modern_button, create_modern_alert
     
-    st.title("👑 Dashboard Administrativo - Visão Consolidada")
+    # Aplicar estilos modernos
+    apply_modern_styles()
     
-    # Botões de navegação
+    # Buscar nome do administrador
+    admin_user = cliente_crud.get_cliente_by_id(st.session_state.get('cliente_id'))
+    admin_name = admin_user.nome if admin_user else "Administrador"
+    
+    # Header moderno com nome do administrador
+    create_modern_header(
+        f"Dashboard - {admin_name}", 
+        "Visão consolidada de todas as clínicas"
+    )
+    
+    # Botões de navegação modernos
     col_nav1, col_nav2, col_nav3 = st.columns(3)
     
     with col_nav1:
-        if st.button("➕ Nova Clínica", use_container_width=True, key="nav_nova_from_dashboard"):
+        if create_modern_button("Nova Clínica", "nav_nova_from_dashboard", "secondary"):
             st.session_state['show_admin_register'] = True
             st.session_state['show_admin_dashboard'] = False
             st.rerun()
     
     with col_nav2:
-        if st.button("🏥 Gerenciar Clínicas", use_container_width=True, key="nav_gerenciar_from_dashboard"):
+        if create_modern_button("Gerenciar Clínicas", "nav_gerenciar_from_dashboard", "secondary"):
             st.session_state['show_clinic_management'] = True
             st.session_state['show_admin_dashboard'] = False
             st.rerun()
     
     with col_nav3:
-        if st.button("👥 Ver Clínicas", use_container_width=True, key="nav_ver_from_dashboard"):
+        if create_modern_button("Ver Clínicas", "nav_ver_from_dashboard", "secondary"):
             st.session_state['show_admin_dashboard'] = False
             st.rerun()
-    
-    st.markdown("---")
     
     # Busca métricas consolidadas
     metrics = admin_dashboard_crud.get_consolidated_metrics()
     
     if not metrics or metrics.get('clinicas_ativas', 0) == 0:
-        st.warning("Nenhuma clínica ativa encontrada para exibir métricas consolidadas.")
+        create_modern_alert("Nenhuma clínica ativa encontrada para exibir métricas consolidadas.", "warning")
         return
     
-    # KPIs principais consolidados
-    st.subheader("📊 KPIs Consolidados - Todas as Clínicas")
+    # KPIs principais consolidados com design moderno
+    st.markdown("### Métricas Principais")
     
+    # Primeira linha de métricas
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.metric(
-            label="Total de Leads",
+        create_metric_card(
             value=f"{metrics['total_leads']:,.0f}".replace(",", "."),
-            help="Soma de todos os leads de todas as clínicas"
+            label="Total de Leads"
         )
     
     with col2:
-        st.metric(
-            label="Faturamento Total",
+        create_metric_card(
             value=f"R$ {metrics['total_faturamento']:,.0f}".replace(",", "."),
-            help="Soma do faturamento de todas as clínicas"
+            label="Faturamento Total"
         )
     
     with col3:
-        st.metric(
-            label="ROAS Médio",
+        create_metric_card(
             value=f"{metrics['roas_medio']:.1f}x",
-            help="Retorno médio sobre investimento"
+            label="ROAS Médio"
         )
     
     with col4:
-        st.metric(
-            label="Clínicas Ativas",
+        create_metric_card(
             value=f"{metrics['clinicas_ativas']}",
-            help="Número de clínicas com dados ativos"
+            label="Clínicas Ativas"
         )
     
-    # Segunda linha de KPIs
+    # Segunda linha de métricas
     col5, col6, col7, col8 = st.columns(4)
     
     with col5:
-        st.metric(
-            label="Consultas Marcadas",
+        create_metric_card(
             value=f"{metrics['total_consultas_marcadas']:,.0f}".replace(",", "."),
-            help="Total de consultas marcadas"
+            label="Consultas Marcadas"
         )
     
     with col6:
-        st.metric(
-            label="Fechamentos",
+        create_metric_card(
             value=f"{metrics['total_fechamentos']:,.0f}".replace(",", "."),
-            help="Total de fechamentos realizados"
+            label="Fechamentos"
         )
     
     with col7:
-        st.metric(
-            label="Custo por Lead Médio",
+        create_metric_card(
             value=f"R$ {metrics['custo_por_lead_medio']:,.0f}".replace(",", "."),
-            help="Custo médio por lead gerado"
+            label="Custo por Lead Médio"
         )
     
     with col8:
-        st.metric(
-            label="Ticket Médio",
+        create_metric_card(
             value=f"R$ {metrics['ticket_medio']:,.0f}".replace(",", "."),
-            help="Valor médio por venda"
+            label="Ticket Médio"
         )
-    
-    st.markdown("---")
     
     # Gráfico de evolução mensal consolidada
     st.subheader("📈 Evolução Mensal Consolidada")

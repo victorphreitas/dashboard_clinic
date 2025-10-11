@@ -119,7 +119,7 @@ def sync_clinic_data(cliente):
     success_count = 0
     for _, row in df.iterrows():
         # Carrega TODOS os meses, mesmo os que têm apenas faturamento
-        if row['leads_totais'] > 0 or row['faturamento'] > 0 or row['investimento_total'] > 0:
+        if row['leads_totais'] > 0 or row['faturamento'] > 0 or row['valor_investido_total'] > 0:
             dados = dados_crud.create_dados_dashboard(
                 cliente_id=cliente.id,
                 mes=row['mes'],
@@ -144,9 +144,9 @@ def sync_clinic_data(cliente):
                 fechamentos_indicacao=int(row['fechamentos_indicacao']),
                 fechamentos_outros=int(row['fechamentos_outros']),
                 faturamento=float(row['faturamento']),
-                investimento_total=float(row['investimento_total']),
-                investimento_facebook=float(row['investimento_facebook']),
-                investimento_google=float(row['investimento_google'])
+                valor_investido_total=float(row['valor_investido_total']),
+                orcamento_realizado_facebook=float(row['orcamento_realizado_facebook']),
+                orcamento_realizado_google=float(row['orcamento_realizado_google'])
             )
             
             if dados:

@@ -209,9 +209,11 @@ def show_login_form() -> bool:
     Returns:
         bool: True se login bem-sucedido, False caso contrário
     """
+    from styles import create_modern_alert
+    
     auth = AuthManager()
     
-    st.subheader("🔐 Login")
+    st.markdown("### Login")
     
     with st.form("login_form"):
         email = st.text_input("Email", placeholder="seu@email.com")
@@ -220,15 +222,15 @@ def show_login_form() -> bool:
         
         if submit_button:
             if not email or not senha:
-                st.error("Por favor, preencha todos os campos")
+                create_modern_alert("Por favor, preencha todos os campos", "error")
                 return False
             
             if auth.login(email, senha):
-                st.success("Login realizado com sucesso!")
+                create_modern_alert("Login realizado com sucesso!", "success")
                 st.rerun()
                 return True
             else:
-                st.error("Email ou senha incorretos")
+                create_modern_alert("Email ou senha incorretos", "error")
                 return False
     
     return False
@@ -240,9 +242,11 @@ def show_register_form() -> bool:
     Returns:
         bool: True se registro bem-sucedido, False caso contrário
     """
+    from styles import create_modern_alert
+    
     auth = AuthManager()
     
-    st.subheader("📝 Cadastro de Nova Clínica")
+    st.markdown("### Cadastro de Nova Clínica")
     
     with st.form("register_form"):
         col1, col2 = st.columns(2)
@@ -276,11 +280,11 @@ def show_register_form() -> bool:
             )
             
             if sucesso:
-                st.success(mensagem)
-                st.info("Agora você pode fazer login com suas credenciais")
+                create_modern_alert(mensagem, "success")
+                create_modern_alert("Agora você pode fazer login com suas credenciais", "info")
                 return True
             else:
-                st.error(mensagem)
+                create_modern_alert(mensagem, "error")
                 return False
     
     return False
@@ -296,28 +300,39 @@ def show_admin_register_clinic_form() -> bool:
     """
     auth = AuthManager()
     
-    # Botões de navegação
+    # Aplicar estilos modernos
+    from styles import apply_modern_styles, create_modern_header, create_modern_button, create_modern_alert
+    apply_modern_styles()
+    
+    # Header moderno
+    create_modern_header(
+        "Cadastrar Nova Clínica", 
+        "Adicione uma nova clínica ao sistema"
+    )
+    
+    # Botões de navegação modernos
     col_nav1, col_nav2, col_nav3 = st.columns(3)
     
     with col_nav1:
-        if st.button("🏥 Gerenciar Clínicas", use_container_width=True, key="nav_gerenciar_from_register"):
+        if create_modern_button("Gerenciar Clínicas", "nav_gerenciar_from_register", "secondary"):
             st.session_state['show_admin_register'] = False
             st.session_state['show_clinic_management'] = True
             st.rerun()
     
     with col_nav2:
-        if st.button("📊 Dashboard Consolidado", use_container_width=True, key="nav_dashboard_from_register"):
+        if create_modern_button("Dashboard Consolidado", "nav_dashboard_from_register", "secondary"):
             st.session_state['show_admin_register'] = False
             st.session_state['show_admin_dashboard'] = True
             st.rerun()
     
     with col_nav3:
-        if st.button("👥 Ver Clínicas", use_container_width=True, key="nav_ver_from_register"):
+        if create_modern_button("Ver Clínicas", "nav_ver_from_register", "secondary"):
             st.session_state['show_admin_register'] = False
             st.rerun()
     
-    st.subheader("🏥 Cadastrar Nova Clínica (Admin)")
-    st.info("Como administrador, você está cadastrando uma nova clínica no sistema.")
+    # Formulário moderno
+    st.markdown("### Informações da Clínica")
+    create_modern_alert("Preencha os dados da nova clínica que será adicionada ao sistema.", "info")
     
     with st.form("admin_register_clinic_form"):
         col1, col2 = st.columns(2)
@@ -393,8 +408,16 @@ def show_admin_register_clinic_form() -> bool:
 
 def show_auth_page():
     """Exibe página de autenticação com opções de login e registro"""
-    st.title("🏥 Prestige Clinic Dashboard")
-    st.markdown("Sistema de análise de performance para clínicas estéticas")
+    from styles import apply_modern_styles, create_modern_header, create_modern_button, create_modern_alert
+    
+    # Aplicar estilos modernos
+    apply_modern_styles()
+    
+    # Header moderno
+    create_modern_header(
+        "Prestige Clinic Dashboard", 
+        "Sistema de análise de performance para clínicas estéticas"
+    )
     
     # Verificar se há admin cadastrado
     clientes = cliente_crud.get_all_clientes()
@@ -402,20 +425,20 @@ def show_auth_page():
     
     if has_admin:
         # Se já existe admin, mostrar apenas login
-        st.info("👑 Sistema já configurado. Faça login para acessar.")
+        create_modern_alert("Sistema já configurado. Faça login para acessar.", "info")
         show_login_form()
     else:
         # Se não existe admin, mostrar opções de configuração inicial
-        st.warning("⚠️ Primeira execução: Configure o administrador do sistema")
+        create_modern_alert("Primeira execução: Configure o administrador do sistema", "warning")
         
-        tab1, tab2 = st.tabs(["🔐 Login", "👑 Configurar Admin"])
+        tab1, tab2 = st.tabs(["Login", "Configurar Admin"])
         
         with tab1:
             show_login_form()
         
         with tab2:
-            st.subheader("👑 Configuração do Administrador")
-            st.info("Configure o primeiro usuário como administrador do sistema.")
+            st.markdown("### Configuração do Administrador")
+            create_modern_alert("Configure o primeiro usuário como administrador do sistema.", "info")
             
             with st.form("admin_setup_form"):
                 col1, col2 = st.columns(2)
@@ -432,13 +455,13 @@ def show_auth_page():
                 
                 if submit_admin:
                     if not admin_nome.strip():
-                        st.error("Nome é obrigatório")
+                        create_modern_alert("Nome é obrigatório", "error")
                     elif not admin_email.strip():
-                        st.error("Email é obrigatório")
+                        create_modern_alert("Email é obrigatório", "error")
                     elif not admin_senha.strip():
-                        st.error("Senha é obrigatória")
+                        create_modern_alert("Senha é obrigatória", "error")
                     elif admin_senha != admin_confirmar_senha:
-                        st.error("Senhas não coincidem")
+                        create_modern_alert("Senhas não coincidem", "error")
                     else:
                         try:
                             admin = cliente_crud.create_cliente(
@@ -450,13 +473,13 @@ def show_auth_page():
                             )
                             
                             if admin:
-                                st.success("✅ Administrador criado com sucesso!")
-                                st.info("Agora você pode fazer login como administrador")
+                                create_modern_alert("Administrador criado com sucesso!", "success")
+                                create_modern_alert("Agora você pode fazer login como administrador", "info")
                                 st.rerun()
                             else:
-                                st.error("Erro ao criar administrador")
+                                create_modern_alert("Erro ao criar administrador", "error")
                         except Exception as e:
-                            st.error(f"Erro: {str(e)}")
+                            create_modern_alert(f"Erro: {str(e)}", "error")
 
 def require_auth(func):
     """
@@ -488,28 +511,32 @@ def show_admin_panel():
     if not auth.is_admin():
         return None
     
-    st.sidebar.markdown("---")
-    st.sidebar.subheader("👑 Painel Administrativo")
+    # Aplicar estilos modernos
+    from styles import apply_modern_styles
+    apply_modern_styles()
     
-    # Botões sempre visíveis
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("### Administração")
+    
+    # Botões sempre visíveis com design moderno
     col1, col2 = st.sidebar.columns(2)
     
     with col1:
-        if st.button("➕ Nova Clínica", use_container_width=True):
+        if st.button("Nova Clínica", use_container_width=True, key="sidebar_nova"):
             st.session_state['show_admin_register'] = True
             st.session_state['show_clinic_management'] = False
             st.session_state['show_admin_dashboard'] = False
             st.rerun()
     
     with col2:
-        if st.button("🏥 Gerenciar", use_container_width=True):
+        if st.button("Gerenciar", use_container_width=True, key="sidebar_gerenciar"):
             st.session_state['show_admin_register'] = False
             st.session_state['show_clinic_management'] = True
             st.session_state['show_admin_dashboard'] = False
             st.rerun()
     
     # Botão para dashboard consolidado (largura completa)
-    if st.sidebar.button("📊 Dashboard Consolidado", use_container_width=True):
+    if st.sidebar.button("Dashboard Consolidado", use_container_width=True, key="sidebar_dashboard"):
         st.session_state['show_admin_register'] = False
         st.session_state['show_clinic_management'] = False
         st.session_state['show_admin_dashboard'] = True
@@ -638,30 +665,37 @@ def show_delete_confirmation(cliente):
 
 def show_clinic_management_panel():
     """Exibe painel completo de gerenciamento de clínicas"""
-    st.title("🏥 Gerenciamento de Clínicas")
+    from styles import apply_modern_styles, create_modern_header, create_modern_button, create_modern_alert, create_status_badge
     
-    # Botões de navegação
+    # Aplicar estilos modernos
+    apply_modern_styles()
+    
+    # Header moderno
+    create_modern_header(
+        "Gerenciamento de Clínicas", 
+        "Gerencie todas as clínicas do sistema"
+    )
+    
+    # Botões de navegação modernos
     col_nav1, col_nav2, col_nav3 = st.columns(3)
     
     with col_nav1:
-        if st.button("➕ Nova Clínica", use_container_width=True, key="nav_nova_from_management"):
+        if create_modern_button("Nova Clínica", "nav_nova_from_management", "secondary"):
             st.session_state['show_admin_register'] = True
             st.session_state['show_clinic_management'] = False
             st.rerun()
     
     with col_nav2:
-        if st.button("📊 Dashboard Consolidado", use_container_width=True, key="nav_dashboard_from_management"):
+        if create_modern_button("Dashboard Consolidado", "nav_dashboard_from_management", "secondary"):
             st.session_state['show_admin_register'] = False
             st.session_state['show_clinic_management'] = False
             st.session_state['show_admin_dashboard'] = True
             st.rerun()
     
     with col_nav3:
-        if st.button("👥 Ver Clínicas", use_container_width=True, key="nav_ver_from_management"):
+        if create_modern_button("Ver Clínicas", "nav_ver_from_management", "secondary"):
             st.session_state['show_clinic_management'] = False
             st.rerun()
-    
-    st.markdown("---")
     
     # Estatísticas
     col1, col2, col3 = st.columns(3)
@@ -675,7 +709,15 @@ def show_clinic_management_panel():
         st.metric("Clínicas Ativas", clientes_ativos)
     
     with col3:
-        st.metric("Sistema", "✅ Online")
+        st.metric("Status", "Online")
+    
+    # with col3:
+    #     st.markdown("""
+    #     <div style="text-align: center;">
+    #         <p style="margin: 0; padding: 0;font-size: 0.6 em;">Status</p>
+    #         <p style="margin: 0; padding: 0;font-size: 0.7 em;">🟢 Online</p>
+    #     </div>
+    #     """, unsafe_allow_html=True)
     
     st.markdown("---")
     
