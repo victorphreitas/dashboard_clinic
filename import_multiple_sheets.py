@@ -242,7 +242,7 @@ def process_controle_leads_data(data):
                         valor = row[mes_planilha]
                         if valor and valor != 0 and valor != '-':
                             print(f"     📅 {mes_planilha}: {valor} ({field_name})")
-                            if field_name in ['faturamento', 'valor_investido_total', 'orcamento_realizado_facebook', 'orcamento_realizado_google']:
+                            if field_name in ['faturamento', 'valor_investido_total', 'orcamento_realizado_facebook', 'orcamento_realizado_google', 'orcamento_previsto_total', 'orcamento_previsto_facebook', 'orcamento_previsto_google']:
                                 # Remove formatação de moeda e converte para float
                                 if isinstance(valor, str):
                                     valor = valor.replace('R$', '').replace('.', '').replace(',', '.').strip()

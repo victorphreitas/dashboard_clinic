@@ -145,8 +145,11 @@ def sync_clinic_data(cliente):
                 fechamentos_outros=int(row['fechamentos_outros']),
                 faturamento=float(row['faturamento']),
                 valor_investido_total=float(row['valor_investido_total']),
+                orcamento_previsto_total=float(row['orcamento_previsto_total']),
                 orcamento_realizado_facebook=float(row['orcamento_realizado_facebook']),
-                orcamento_realizado_google=float(row['orcamento_realizado_google'])
+                orcamento_previsto_facebook=float(row['orcamento_previsto_facebook']),
+                orcamento_realizado_google=float(row['orcamento_realizado_google']),
+                orcamento_previsto_google=float(row['orcamento_previsto_google'])
             )
             
             if dados:

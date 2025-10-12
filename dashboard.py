@@ -376,8 +376,19 @@ def create_conversion_analysis(df_filtered):
     # KPIs de conversão
     col1, col2, col3, col4 = st.columns(4)
     
+    # Calcular conversões usando totais (não média de percentuais)
+    total_leads = df_ativos['Leads_Totais'].sum()
+    total_consultas_marcadas = df_ativos['Consultas_Marcadas_Totais'].sum()
+    total_consultas_comparecidas = df_ativos['Consultas_Comparecidas'].sum()
+    total_fechamentos = df_ativos['Fechamentos_Totais'].sum()
+    
+    # Conversões calculadas corretamente
+    conversao_csm_leads = (total_consultas_marcadas / total_leads * 100) if total_leads > 0 else 0
+    conversao_csc_csm = (total_consultas_comparecidas / total_consultas_marcadas * 100) if total_consultas_marcadas > 0 else 0
+    conversao_fechamento_csc = (total_fechamentos / total_consultas_comparecidas * 100) if total_consultas_comparecidas > 0 else 0
+    conversao_fechamento_leads = (total_fechamentos / total_leads * 100) if total_leads > 0 else 0
+    
     with col1:
-        conversao_csm_leads = df_ativos['Conversao_Csm_Leads'].mean()
         st.metric(
             label="% Conversão Csm./Leads",
             value=f"{conversao_csm_leads:.1f}%",
@@ -385,7 +396,6 @@ def create_conversion_analysis(df_filtered):
         )
     
     with col2:
-        conversao_csc_csm = df_ativos['Conversao_Csc_Csm'].mean()
         st.metric(
             label="% Conversão Csc./Csm.",
             value=f"{conversao_csc_csm:.1f}%",
@@ -393,7 +403,6 @@ def create_conversion_analysis(df_filtered):
         )
     
     with col3:
-        conversao_fechamento_csc = df_ativos['Conversao_Fechamento_Csc'].mean()
         st.metric(
             label="% Conversão Fechamento/Csc.",
             value=f"{conversao_fechamento_csc:.1f}%",
@@ -401,7 +410,6 @@ def create_conversion_analysis(df_filtered):
         )
     
     with col4:
-        conversao_fechamento_leads = df_ativos['Conversao_Fechamento_Leads'].mean()
         st.metric(
             label="% Conversão Fechamento/Leads",
             value=f"{conversao_fechamento_leads:.1f}%",

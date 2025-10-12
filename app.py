@@ -118,7 +118,16 @@ def main_dashboard():
         return
     
     # Título do dashboard
-    st.title("🏥 Dashboard Clínica de Estética - Análise de Performance")
+    if auth.is_admin() and cliente_id != auth.get_cliente_id():
+        # Se for admin visualizando outra clínica
+        cliente_selecionado = cliente_crud.get_cliente_by_id(cliente_id)
+        if cliente_selecionado:
+            st.title(f"GrowView | Clínica {cliente_selecionado.nome_da_clinica}")
+        else:
+            st.title(f"GrowView | Clínica {user['nome_da_clinica']}")
+    else:
+        # Se for a própria clínica
+        st.title(f"GrowView | Clínica {user['nome_da_clinica']}")
     
     # Se for admin, mostra o nome da clínica selecionada
     if auth.is_admin() and cliente_id != auth.get_cliente_id():
