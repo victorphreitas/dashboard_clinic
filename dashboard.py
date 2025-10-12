@@ -565,12 +565,62 @@ def create_admin_consolidated_dashboard():
             st.session_state['show_admin_dashboard'] = False
             st.rerun()
     
-    # Busca métricas consolidadas
-    metrics = admin_dashboard_crud.get_consolidated_metrics()
+    # Filtros de período
+    st.sidebar.title("Filtros de Período")
+    st.sidebar.markdown("**Selecione o(s) Mês(es) para Análise**")
     
-    if not metrics or metrics.get('clinicas_ativas', 0) == 0:
+    # Lista de meses disponíveis
+    meses_disponiveis = [
+        "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+    ]
+    
+    # Filtro de meses (múltipla seleção)
+    meses_selecionados = st.sidebar.multiselect(
+        "Meses:",
+        options=meses_disponiveis,
+        default=meses_disponiveis,  # Todos os meses por padrão
+        key="admin_meses_filter"
+    )
+    
+    # Busca dados filtrados por meses selecionados
+    from database import dados_crud
+    
+    # Busca todos os dados de todas as clínicas
+    all_data = []
+    clientes = cliente_crud.get_all_clientes()
+    for cliente in clientes:
+        if not cliente.is_admin and cliente.ativo:
+            dados_cliente = dados_crud.get_dados_by_cliente(cliente.id)
+            if dados_cliente:
+                df_cliente = dados_crud.dados_to_dataframe(dados_cliente)
+                # Filtra pelos meses selecionados
+                df_filtrado = df_cliente[df_cliente['Meses'].isin(meses_selecionados)]
+                if not df_filtrado.empty:
+                    all_data.append(df_filtrado)
+    
+    if not all_data:
         create_modern_alert("Nenhuma clínica ativa encontrada para exibir métricas consolidadas.", "warning")
         return
+    
+    # Concatena todos os dados filtrados
+    import pandas as pd
+    df_consolidado = pd.concat(all_data, ignore_index=True)
+    
+    # Calcula métricas consolidadas filtradas
+    metrics = {
+        'total_leads': df_consolidado['Leads_Totais'].sum(),
+        'total_consultas_marcadas': df_consolidado['Consultas_Marcadas_Totais'].sum(),
+        'total_consultas_comparecidas': df_consolidado['Consultas_Comparecidas'].sum(),
+        'total_fechamentos': df_consolidado['Fechamentos_Totais'].sum(),
+        'total_faturamento': df_consolidado['Faturamento'].sum(),
+        'total_investimento': df_consolidado['Valor_Investido_Total'].sum(),
+        'roas_medio': (df_consolidado['Faturamento'].sum() / df_consolidado['Valor_Investido_Total'].sum()) if df_consolidado['Valor_Investido_Total'].sum() > 0 else 0,
+        'custo_por_lead_medio': (df_consolidado['Valor_Investido_Total'].sum() / df_consolidado['Leads_Totais'].sum()) if df_consolidado['Leads_Totais'].sum() > 0 else 0,
+        'ticket_medio': (df_consolidado['Faturamento'].sum() / df_consolidado['Fechamentos_Totais'].sum()) if df_consolidado['Fechamentos_Totais'].sum() > 0 else 0,
+        'clinicas_ativas': len(set(df_consolidado['Cliente_ID'])),
+        'meses_ativos': len(set(df_consolidado['Meses']))
+    }
     
     # KPIs principais consolidados com design moderno
     st.markdown("### Métricas Principais")
@@ -684,34 +734,59 @@ def create_admin_consolidated_dashboard():
     if clinics_data:
         df_clinics = pd.DataFrame(clinics_data)
         
-        # Gráfico de barras comparativo
+        # Gráfico de barras comparativo - Leads vs Fechamentos (escalas similares)
         fig_comparison = go.Figure()
         
         fig_comparison.add_trace(go.Bar(
             x=df_clinics['nome_da_clinica'],
             y=df_clinics['total_leads'],
             name='Leads',
-            marker_color='#1f77b4'
+            marker_color='#3B82F6',
+            text=df_clinics['total_leads'],
+            textposition='auto'
         ))
         
         fig_comparison.add_trace(go.Bar(
             x=df_clinics['nome_da_clinica'],
-            y=df_clinics['total_faturamento'],
-            name='Faturamento',
-            marker_color='#2ca02c',
-            yaxis='y2'
+            y=df_clinics['total_fechamentos'],
+            name='Fechamentos',
+            marker_color='#10B981',
+            text=df_clinics['total_fechamentos'],
+            textposition='auto'
         ))
         
         fig_comparison.update_layout(
             title="Comparativo de Performance entre Clínicas",
             xaxis_title="Clínicas",
-            yaxis_title="Leads",
-            yaxis2=dict(title="Faturamento (R$)", overlaying="y", side="right"),
+            yaxis_title="Quantidade",
             barmode='group',
-            height=400
+            height=400,
+            showlegend=True
         )
         
         st.plotly_chart(fig_comparison, use_container_width=True)
+        
+        # Gráfico de faturamento separado
+        st.markdown("### 💰 Faturamento por Clínica")
+        fig_faturamento = go.Figure()
+        
+        fig_faturamento.add_trace(go.Bar(
+            x=df_clinics['nome_da_clinica'],
+            y=df_clinics['total_faturamento'],
+            name='Faturamento',
+            marker_color='#F59E0B',
+            text=[f"R$ {x:,.0f}".replace(",", ".") for x in df_clinics['total_faturamento']],
+            textposition='auto'
+        ))
+        
+        fig_faturamento.update_layout(
+            title="Faturamento Total por Clínica",
+            xaxis_title="Clínicas",
+            yaxis_title="Faturamento (R$)",
+            height=400
+        )
+        
+        st.plotly_chart(fig_faturamento, use_container_width=True)
         
         # Tabela de ranking
         st.markdown("### 🏆 Ranking de Performance")

@@ -73,16 +73,18 @@ def apply_modern_styles():
     }}
     
     .main-header h1 {{
-        font-size: {TYPOGRAPHY['h1_size']};
-        font-weight: 700;
-        margin: 0;
-        letter-spacing: -0.025em;
+        font-size: {TYPOGRAPHY['h1_size']} !important;
+        font-weight: 700 !important;
+        margin: 0 !important;
+        letter-spacing: -0.025em !important;
+        color: white !important;
     }}
     
     .main-header p {{
-        font-size: {TYPOGRAPHY['body_size']};
-        opacity: 0.9;
-        margin: 0.5rem 0 0 0;
+        font-size: {TYPOGRAPHY['body_size']} !important;
+        opacity: 0.9 !important;
+        margin: 0.5rem 0 0 0 !important;
+        color: white !important;
     }}
     
     /* Cards modernos */
@@ -338,9 +340,9 @@ def apply_modern_styles():
 def create_modern_header(title: str, subtitle: str = ""):
     """Cria header moderno para páginas"""
     st.markdown(f"""
-    <div class="main-header fade-in">
-        <h1>{title}</h1>
-        {f'<p>{subtitle}</p>' if subtitle else ''}
+    <div class="main-header fade-in" style="background: linear-gradient(135deg, {COLORS['primary']} 0%, {COLORS['primary_dark']} 100%); color: white; padding: 1.5rem 2rem; margin: -1rem -1rem 2rem -1rem; border-radius: 0 0 1rem 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+        <h1 style="font-size: 2.5rem; font-weight: 700; margin: 0; letter-spacing: -0.025em; color: white !important;">{title}</h1>
+        {f'<p style="font-size: 1rem; opacity: 0.9; margin: 0.5rem 0 0 0; color: white !important;">{subtitle}</p>' if subtitle else ''}
     </div>
     """, unsafe_allow_html=True)
 

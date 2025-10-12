@@ -270,6 +270,7 @@ class DadosDashboardCRUD:
         
         # Mapeia os dados para o formato esperado pelo dashboard
         data = {
+            'Cliente_ID': [d.cliente_id for d in dados],
             'Meses': [d.mes for d in dados],
             'Leads_Totais': [d.leads_totais for d in dados],
             'Leads_Google_Ads': [d.leads_google_ads for d in dados],

@@ -415,7 +415,7 @@ def show_auth_page():
     
     # Header moderno
     create_modern_header(
-        "Prestige Clinic Dashboard", 
+        "GrowView | Kimera Assessoria", 
         "Sistema de análise de performance para clínicas estéticas"
     )
     
