@@ -1,5 +1,9 @@
 # app.py
 import streamlit as st
+
+# Configuração da página DEVE ser a primeira coisa
+st.set_page_config(page_title="Dashboard Clínica Estética", layout="wide", page_icon="🏥")
+
 import pandas as pd
 import os
 from dotenv import load_dotenv
@@ -24,8 +28,6 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'chave_padrao_para_desenvolvimento')
 DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///prestige_clinic.db')
 GOOGLE_SHEETS_CREDENTIALS = os.getenv('GOOGLE_SHEETS_CREDENTIALS', '{}')
 DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
-
-st.set_page_config(page_title="Dashboard Clínica Estética", layout="wide", page_icon="🏥")
 
 # Inicializa o banco de dados
 @st.cache_resource
