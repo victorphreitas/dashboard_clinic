@@ -44,7 +44,7 @@ SPACING = {
 }
 
 def apply_modern_styles():
-    """Aplica estilos modernos ao Streamlit"""
+    """Aplica estilos modernos ao Streamlit com suporte a dark/light mode responsivo"""
     
     st.markdown(f"""
     <style>
@@ -55,21 +55,162 @@ def apply_modern_styles():
         box-sizing: border-box;
     }}
     
-    /* Configuração da fonte */
-    html, body, [class*="css"] {{
-        font-family: {TYPOGRAPHY['font_family']};
-        color: {COLORS['text_primary']};
-        background-color: {COLORS['background']};
+    /* Detectar modo escuro e aplicar estilos apropriados */
+    @media (prefers-color-scheme: dark) {{
+        :root {{
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --accent-primary: #3B82F6;
+            --accent-secondary: #10B981;
+            --border-color: #404040;
+            --shadow: rgba(0, 0, 0, 0.3);
+        }}
     }}
     
-    /* Header principal */
+    @media (prefers-color-scheme: light) {{
+        :root {{
+            --bg-primary: {COLORS['background']};
+            --bg-secondary: {COLORS['surface']};
+            --text-primary: {COLORS['text_primary']};
+            --text-secondary: {COLORS['text_secondary']};
+            --accent-primary: {COLORS['primary']};
+            --accent-secondary: {COLORS['success']};
+            --border-color: {COLORS['border']};
+            --shadow: rgba(0, 0, 0, 0.1);
+        }}
+    }}
+    
+    /* Aplicar variáveis CSS */
+    .stApp {{
+        background-color: var(--bg-primary) !important;
+    }}
+    
+    /* Configuração da fonte responsiva */
+    html, body, [class*="css"] {{
+        font-family: {TYPOGRAPHY['font_family']};
+        color: var(--text-primary) !important;
+        background-color: var(--bg-primary) !important;
+    }}
+    
+    /* Botões responsivos */
+    .stButton > button {{
+        background-color: var(--accent-primary) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 0.5rem !important;
+        padding: 0.5rem 1rem !important;
+        font-weight: 600 !important;
+        transition: all 0.2s ease !important;
+    }}
+    
+    .stButton > button:hover {{
+        background-color: var(--accent-primary) !important;
+        opacity: 0.9 !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 4px 8px var(--shadow) !important;
+    }}
+    
+    /* Cartões de métricas responsivos */
+    .metric-card {{
+        background: var(--bg-secondary) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 0.75rem !important;
+        padding: 1.5rem !important;
+        box-shadow: 0 1px 3px 0 var(--shadow) !important;
+        transition: all 0.2s ease !important;
+    }}
+    
+    .metric-card:hover {{
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 12px var(--shadow) !important;
+    }}
+    
+    .metric-value {{
+        font-size: 2rem !important;
+        font-weight: 700 !important;
+        color: var(--accent-primary) !important;
+        margin-bottom: 0.5rem !important;
+    }}
+    
+    .metric-label {{
+        font-size: 0.875rem !important;
+        color: var(--text-secondary) !important;
+        font-weight: 500 !important;
+    }}
+    
+    /* Sidebar responsiva */
+    [data-testid="stSidebar"] {{
+        background-color: var(--bg-secondary) !important;
+    }}
+    
+    [data-testid="stSidebar"] .stButton > button {{
+        background-color: var(--accent-primary) !important;
+        color: white !important;
+        border: none !important;
+    }}
+    
+    /* Elementos de formulário responsivos */
+    .stSelectbox > div > div {{
+        background-color: var(--bg-secondary) !important;
+        color: var(--text-primary) !important;
+        border: 1px solid var(--border-color) !important;
+    }}
+    
+    .stMultiSelect > div > div {{
+        background-color: var(--bg-secondary) !important;
+        color: var(--text-primary) !important;
+        border: 1px solid var(--border-color) !important;
+    }}
+    
+    /* Cartões de métricas nativos do Streamlit responsivos */
+    [data-testid="metric-container"] {{
+        background-color: var(--bg-secondary) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 0.75rem !important;
+        padding: 1rem !important;
+        box-shadow: 0 1px 3px 0 var(--shadow) !important;
+    }}
+    
+    [data-testid="metric-container"] [data-testid="metric-value"] {{
+        color: var(--accent-primary) !important;
+        font-size: 2rem !important;
+        font-weight: 700 !important;
+    }}
+    
+    [data-testid="metric-container"] [data-testid="metric-label"] {{
+        color: var(--text-secondary) !important;
+        font-size: 0.875rem !important;
+    }}
+    
+    /* Títulos responsivos */
+    h1, h2, h3, h4, h5, h6 {{
+        color: var(--text-primary) !important;
+    }}
+    
+    /* Texto responsivo */
+    p, div, span {{
+        color: var(--text-primary) !important;
+    }}
+    
+    /* Links responsivos */
+    a {{
+        color: var(--accent-primary) !important;
+    }}
+    
+    a:hover {{
+        color: var(--accent-secondary) !important;
+    }}
+    
+    /* Header principal responsivo */
     .main-header {{
-        background: linear-gradient(135deg, {COLORS['primary']} 0%, {COLORS['primary_dark']} 100%);
-        color: white;
+        background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary) 100%);
+        color: white !important;
         padding: {SPACING['lg']} {SPACING['xl']};
         margin: -1rem -1rem 2rem -1rem;
         border-radius: 0 0 1rem 1rem;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 6px -1px var(--shadow);
     }}
     
     .main-header h1 {{
@@ -87,51 +228,52 @@ def apply_modern_styles():
         color: white !important;
     }}
     
-    /* Cards modernos */
+    /* Cards modernos responsivos */
     .modern-card {{
-        background: {COLORS['surface']};
-        border: 1px solid {COLORS['border']};
-        border-radius: 0.75rem;
-        padding: {SPACING['lg']};
-        margin-bottom: {SPACING['lg']};
-        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-        transition: all 0.2s ease;
+        background: var(--bg-secondary) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 0.75rem !important;
+        padding: {SPACING['lg']} !important;
+        margin-bottom: {SPACING['lg']} !important;
+        box-shadow: 0 1px 3px 0 var(--shadow) !important;
+        transition: all 0.2s ease !important;
     }}
     
     .modern-card:hover {{
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        transform: translateY(-1px);
+        box-shadow: 0 4px 12px var(--shadow) !important;
+        transform: translateY(-2px) !important;
     }}
     
-    /* Botões modernos */
+    /* Botões modernos responsivos */
     .modern-button {{
-        background: {COLORS['primary']};
-        color: white;
-        border: none;
-        border-radius: 0.5rem;
-        padding: {SPACING['sm']} {SPACING['lg']};
-        font-weight: 500;
-        font-size: {TYPOGRAPHY['body_size']};
-        cursor: pointer;
-        transition: all 0.2s ease;
-        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        background: var(--accent-primary) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 0.5rem !important;
+        padding: {SPACING['sm']} {SPACING['lg']} !important;
+        font-weight: 500 !important;
+        font-size: {TYPOGRAPHY['body_size']} !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
+        box-shadow: 0 1px 2px 0 var(--shadow) !important;
     }}
     
     .modern-button:hover {{
-        background: {COLORS['primary_dark']};
-        transform: translateY(-1px);
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        background: var(--accent-primary) !important;
+        opacity: 0.9 !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 4px 6px -1px var(--shadow) !important;
     }}
     
     .modern-button-secondary {{
-        background: {COLORS['surface']};
-        color: {COLORS['text_primary']};
-        border: 1px solid {COLORS['border']};
+        background: var(--bg-secondary) !important;
+        color: var(--text-primary) !important;
+        border: 1px solid var(--border-color) !important;
     }}
     
     .modern-button-secondary:hover {{
-        background: {COLORS['background']};
-        border-color: {COLORS['primary']};
+        background: var(--bg-primary) !important;
+        border-color: var(--accent-primary) !important;
     }}
     
     /* Métricas/KPIs */
@@ -383,4 +525,27 @@ def create_modern_alert(message: str, alert_type: str = "info"):
     <div class="{alert_class}">
         {message}
     </div>
+    """, unsafe_allow_html=True)
+
+def apply_responsive_theme():
+    """Aplica tema responsivo baseado na preferência do sistema"""
+    st.markdown("""
+    <script>
+    // Detectar preferência do sistema
+    function detectTheme() {
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        } else {
+            document.documentElement.setAttribute('data-theme', 'light');
+        }
+    }
+    
+    // Aplicar tema na inicialização
+    detectTheme();
+    
+    // Escutar mudanças de tema
+    if (window.matchMedia) {
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', detectTheme);
+    }
+    </script>
     """, unsafe_allow_html=True)

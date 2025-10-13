@@ -2,7 +2,12 @@
 import streamlit as st
 
 # Configuração da página DEVE ser a primeira coisa
-st.set_page_config(page_title="Dashboard Clínica Estética", layout="wide", page_icon="🏥")
+st.set_page_config(
+    page_title="Dashboard Clínica Estética", 
+    layout="wide", 
+    page_icon="🏥",
+    initial_sidebar_state="expanded"
+)
 
 import pandas as pd
 import os
@@ -20,8 +25,9 @@ from dashboard import (
 load_dotenv()
 
 # Aplicar estilos modernos globalmente
-from styles import apply_modern_styles
+from styles import apply_modern_styles, apply_responsive_theme
 apply_modern_styles()
+apply_responsive_theme()
 
 # Configurações
 SECRET_KEY = os.getenv('SECRET_KEY', 'chave_padrao_para_desenvolvimento')
