@@ -314,20 +314,24 @@ def show_admin_register_clinic_form() -> bool:
     col_nav1, col_nav2, col_nav3 = st.columns(3)
     
     with col_nav1:
-        if create_modern_button("Gerenciar Clínicas", "nav_gerenciar_from_register", "secondary"):
+        if st.button("Gerenciar Clínicas", key="nav_gerenciar_from_register", use_container_width=True):
             st.session_state['show_admin_register'] = False
             st.session_state['show_clinic_management'] = True
+            st.session_state['show_admin_dashboard'] = False
             st.rerun()
     
     with col_nav2:
-        if create_modern_button("Dashboard Consolidado", "nav_dashboard_from_register", "secondary"):
+        if st.button("Dashboard Consolidado", key="nav_dashboard_from_register", use_container_width=True):
             st.session_state['show_admin_register'] = False
+            st.session_state['show_clinic_management'] = False
             st.session_state['show_admin_dashboard'] = True
             st.rerun()
     
     with col_nav3:
-        if create_modern_button("Ver Clínicas", "nav_ver_from_register", "secondary"):
+        if st.button("Ver Clínicas", key="nav_ver_from_register", use_container_width=True):
             st.session_state['show_admin_register'] = False
+            st.session_state['show_clinic_management'] = False
+            st.session_state['show_admin_dashboard'] = False
             st.rerun()
     
     # Formulário moderno
@@ -590,12 +594,57 @@ def show_edit_clinic_form(cliente):
             nome_da_clinica = st.text_input("Nome da Clínica", value=cliente.nome_da_clinica, key=f"edit_nome_da_clinica_{cliente.id}")
             endereco = st.text_area("Endereço", value=cliente.endereco or "", key=f"edit_endereco_{cliente.id}")
             link_empresa = st.text_input("Link da Empresa", value=cliente.link_empresa or "", key=f"edit_link_empresa_{cliente.id}")
-            nova_senha = st.text_input("Nova Senha (deixe em branco para manter)", type="password", key=f"edit_senha_{cliente.id}")
+            
+            # Seção de alteração de senha
+            st.markdown("#### 🔐 Alterar Senha")
+            senha_atual = st.text_input("Senha Atual", type="password", key=f"edit_senha_atual_{cliente.id}", 
+                                      help="Digite a senha atual para confirmar a alteração")
+            nova_senha = st.text_input("Nova Senha", type="password", key=f"edit_nova_senha_{cliente.id}", 
+                                     help="Deixe em branco para manter a senha atual")
+            confirmar_senha = st.text_input("Confirmar Nova Senha", type="password", key=f"edit_confirmar_senha_{cliente.id}", 
+                                          help="Confirme a nova senha")
         
         col_save, col_cancel = st.columns(2)
         
         with col_save:
             if st.form_submit_button("💾 Salvar Alterações", type="primary"):
+                # Validações básicas
+                if not nome.strip():
+                    st.error("Nome é obrigatório")
+                    return False
+                if not email.strip():
+                    st.error("Email é obrigatório")
+                    return False
+                if not nome_da_clinica.strip():
+                    st.error("Nome da clínica é obrigatório")
+                    return False
+                
+                # Validação de email
+                auth = AuthManager()
+                if not auth._validate_email(email):
+                    st.error("Email inválido")
+                    return False
+                
+                # Validação de senha (se fornecida)
+                senha_validation_error = None
+                if nova_senha.strip() or confirmar_senha.strip():
+                    # Se forneceu nova senha, deve fornecer senha atual
+                    if not senha_atual.strip():
+                        senha_validation_error = "Para alterar a senha, você deve fornecer a senha atual"
+                    # Verificar se a senha atual está correta
+                    elif not cliente_crud.authenticate_cliente(cliente.email, senha_atual):
+                        senha_validation_error = "Senha atual incorreta"
+                    # Verificar se nova senha e confirmação coincidem
+                    elif nova_senha.strip() != confirmar_senha.strip():
+                        senha_validation_error = "Nova senha e confirmação não coincidem"
+                    # Verificar se nova senha atende aos critérios
+                    elif not auth._validate_password(nova_senha.strip()):
+                        senha_validation_error = "Nova senha deve ter pelo menos 6 caracteres"
+                
+                if senha_validation_error:
+                    st.error(senha_validation_error)
+                    return False
+                
                 # Preparar dados para atualização
                 update_data = {
                     'nome': nome.strip(),
@@ -607,16 +656,17 @@ def show_edit_clinic_form(cliente):
                     'link_empresa': link_empresa.strip() if link_empresa else None
                 }
                 
-                # Adicionar senha apenas se fornecida
+                # Adicionar nova senha se fornecida
                 if nova_senha.strip():
                     update_data['senha'] = nova_senha.strip()
                 
                 # Atualizar cliente
-                auth = AuthManager()
                 success, message = auth.update_cliente(cliente.id, **update_data)
                 
                 if success:
                     st.success(message)
+                    if nova_senha.strip():
+                        st.info("🔐 Senha alterada com sucesso!")
                     st.session_state[f"editing_cliente_{cliente.id}"] = False
                     st.rerun()
                 else:
@@ -680,21 +730,24 @@ def show_clinic_management_panel():
     col_nav1, col_nav2, col_nav3 = st.columns(3)
     
     with col_nav1:
-        if create_modern_button("Nova Clínica", "nav_nova_from_management", "secondary"):
+        if st.button("Nova Clínica", key="nav_nova_from_management", use_container_width=True):
             st.session_state['show_admin_register'] = True
             st.session_state['show_clinic_management'] = False
+            st.session_state['show_admin_dashboard'] = False
             st.rerun()
     
     with col_nav2:
-        if create_modern_button("Dashboard Consolidado", "nav_dashboard_from_management", "secondary"):
+        if st.button("Dashboard Consolidado", key="nav_dashboard_from_management", use_container_width=True):
             st.session_state['show_admin_register'] = False
             st.session_state['show_clinic_management'] = False
             st.session_state['show_admin_dashboard'] = True
             st.rerun()
     
     with col_nav3:
-        if create_modern_button("Ver Clínicas", "nav_ver_from_management", "secondary"):
+        if st.button("Ver Clínicas", key="nav_ver_from_management", use_container_width=True):
+            st.session_state['show_admin_register'] = False
             st.session_state['show_clinic_management'] = False
+            st.session_state['show_admin_dashboard'] = False
             st.rerun()
     
     # Estatísticas
