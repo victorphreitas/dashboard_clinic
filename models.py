@@ -30,6 +30,8 @@ class Cliente(Base):
     
     # Relacionamento com dados do dashboard
     dados_dashboard = relationship("DadosDashboard", back_populates="cliente")
+    # Relacionamento com procedimentos
+    procedimentos = relationship("Procedimento", back_populates="cliente")
 
 class DadosDashboard(Base):
     """Modelo para a tabela de dados do dashboard"""
@@ -98,4 +100,36 @@ class DadosDashboard(Base):
     
     # Relacionamento com cliente
     cliente = relationship("Cliente", back_populates="dados_dashboard")
+
+class Procedimento(Base):
+    """Modelo para a tabela de procedimentos"""
+    __tablename__ = 'procedimentos'
+    
+    id = Column(Integer, primary_key=True, index=True)
+    cliente_id = Column(Integer, ForeignKey('clientes.id'), nullable=False)
+    
+    # Datas do processo
+    data_primeiro_contato = Column(DateTime, nullable=True)
+    data_compareceu_consulta = Column(DateTime, nullable=True)
+    data_fechou_cirurgia = Column(DateTime, nullable=True)
+    
+    # Dados do procedimento
+    procedimento = Column(String(500), nullable=False)
+    tipo = Column(String(100), nullable=True)  # Cosmiatria, Cirúrgico, etc.
+    quantidade_na_mesma_venda = Column(Integer, default=1)
+    
+    # Dados financeiros
+    forma_pagamento = Column(String(100), nullable=True)
+    valor_da_venda = Column(Float, default=0.0)
+    valor_parcelado = Column(Float, default=0.0)
+    
+    # Metadados
+    mes_referencia = Column(String(20), nullable=False)  # Outubro, Novembro, etc.
+    ano_referencia = Column(Integer, nullable=False, default=2024)
+    
+    data_criacao = Column(DateTime, default=datetime.utcnow)
+    data_atualizacao = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relacionamento com cliente
+    cliente = relationship("Cliente", back_populates="procedimentos")
 

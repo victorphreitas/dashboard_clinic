@@ -1,0 +1,39 @@
+{
+  "exported_at": "2025-10-30T01:48:09.645806Z",
+  "count": 3,
+  "clientes": [
+    {
+      "nome": "Dr. Jorge Campos",
+      "email": "joao@clinicaestetica.com",
+      "cnpj": "98.765.432/0001-10",
+      "nome_da_clinica": "Prestige Clinique",
+      "telefone": "(11) 88888-8888",
+      "endereco": "Av. Paulista, 1000 - São Paulo/SP",
+      "link_empresa": "https://docs.google.com/spreadsheets/d/1hJDvihxFPWnqjGlp-QFOB6vjExlskBHPNbA3j7SxgPA/edit",
+      "is_admin": false,
+      "ativo": true
+    },
+    {
+      "nome": "Dra Tayna Bastos",
+      "email": "taynah@cirurgiaplastica.com",
+      "cnpj": "11.222.333/0001-44",
+      "nome_da_clinica": "Dra Tayna Bastos (Cirurgia Plástica)",
+      "telefone": "(11) 77777-7777",
+      "endereco": "Rua das Cirurgias, 456 - São Paulo/SP",
+      "link_empresa": null,
+      "is_admin": false,
+      "ativo": true
+    },
+    {
+      "nome": "Ramon Domingos",
+      "email": "dramarleisangalli@gmail.com",
+      "cnpj": "28.132.514/0001-10",
+      "nome_da_clinica": "Dra Marlei Sangalli",
+      "telefone": "(48) 99189-3949",
+      "endereco": "Avenida Mauro Ramos, 1970, 3° Andar Sala 302 – Centro, Florianópolis – SC, 88020-304.",
+      "link_empresa": "https://docs.google.com/spreadsheets/d/1Y5_LBHkLHTDetCfA5QSi-07A4W6lQnEg008TEh2XPY8/edit?gid=614972599#gid=614972599",
+      "is_admin": false,
+      "ativo": true
+    }
+  ]
+}

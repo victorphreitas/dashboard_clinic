@@ -118,7 +118,7 @@ def create_funnel_analysis(df_filtered):
     col1, col2 = st.columns([2, 1])
     
     with col1:
-        st.plotly_chart(fig_funnel, use_container_width=True)
+        st.plotly_chart(fig_funnel)
     
     with col2:
         st.markdown("### 📈 Taxas de Conversão Consolidadas")
@@ -164,7 +164,7 @@ def create_revenue_analysis(df_filtered):
             showlegend=True,
             height=400
         )
-        st.plotly_chart(fig_revenue, use_container_width=True)
+        st.plotly_chart(fig_revenue)
     
     with col2:
         # ROAS e Ticket Médio
@@ -189,7 +189,7 @@ def create_revenue_analysis(df_filtered):
         fig_roas.update_yaxes(title_text="ROAS (x)", secondary_y=False)
         fig_roas.update_yaxes(title_text="Ticket Médio (R$)", secondary_y=True)
         
-        st.plotly_chart(fig_roas, use_container_width=True)
+        st.plotly_chart(fig_roas)
 
 def create_channel_analysis(df_filtered):
     """Análise de performance por canal"""
@@ -236,7 +236,7 @@ def create_channel_analysis(df_filtered):
             title='Distribuição de Leads por Canal',
             color_discrete_sequence=px.colors.qualitative.Set3
         )
-        st.plotly_chart(fig_leads, use_container_width=True)
+        st.plotly_chart(fig_leads)
     
     with col2:
         # Taxa de conversão por canal
@@ -250,7 +250,7 @@ def create_channel_analysis(df_filtered):
             text_auto='.1f' 
         )
         fig_conversion.update_layout(showlegend=False)
-        st.plotly_chart(fig_conversion, use_container_width=True)
+        st.plotly_chart(fig_conversion)
 
 def create_cost_analysis(df_filtered):
     """Análise de custos e eficiência"""
@@ -318,7 +318,7 @@ def create_cost_analysis(df_filtered):
         height=400
     )
     
-    st.plotly_chart(fig_costs, use_container_width=True)
+    st.plotly_chart(fig_costs)
 
 def create_monthly_trends(df_filtered):
     """Tendências mensais e sazonais"""
@@ -361,7 +361,7 @@ def create_monthly_trends(df_filtered):
     )
     
     fig_trends.update_layout(height=600, showlegend=False)
-    st.plotly_chart(fig_trends, use_container_width=True)
+    st.plotly_chart(fig_trends)
 
 def create_conversion_analysis(df_filtered):
     """Cria análise de conversão com novos KPIs"""
@@ -525,7 +525,7 @@ def create_budget_analysis(df_filtered):
             height=400
         )
         
-        st.plotly_chart(fig_budget, use_container_width=True)
+        st.plotly_chart(fig_budget)
 
 def create_admin_consolidated_dashboard():
     """Cria dashboard consolidado para administrador"""
@@ -721,7 +721,7 @@ def create_admin_consolidated_dashboard():
             height=400
         )
         
-        st.plotly_chart(fig_evolution, use_container_width=True)
+        st.plotly_chart(fig_evolution)
     else:
         st.info("Nenhum dado mensal encontrado para exibir evolução.")
     
@@ -764,7 +764,7 @@ def create_admin_consolidated_dashboard():
             showlegend=True
         )
         
-        st.plotly_chart(fig_comparison, use_container_width=True)
+        st.plotly_chart(fig_comparison)
         
         # Gráfico de faturamento separado
         st.markdown("### 💰 Faturamento por Clínica")
@@ -786,7 +786,7 @@ def create_admin_consolidated_dashboard():
             height=400
         )
         
-        st.plotly_chart(fig_faturamento, use_container_width=True)
+        st.plotly_chart(fig_faturamento)
         
         # Tabela de ranking
         st.markdown("### 🏆 Ranking de Performance")
@@ -834,7 +834,7 @@ def create_admin_consolidated_dashboard():
             height=400
         )
         
-        st.plotly_chart(fig_pie, use_container_width=True)
+        st.plotly_chart(fig_pie)
         
         # Gráfico de investimento vs retorno
         fig_investment = go.Figure()
@@ -853,9 +853,245 @@ def create_admin_consolidated_dashboard():
             height=300
         )
         
-        st.plotly_chart(fig_investment, use_container_width=True)
+        st.plotly_chart(fig_investment)
     else:
         st.info("Nenhum dado de canais encontrado para análise.")
+    
+    st.markdown("---")
+    
+    # Análise de Procedimentos Consolidada
+    st.subheader("🏥 Análise de Procedimentos Consolidada")
+    
+    # Busca dados de procedimentos de todas as clínicas
+    from database import procedimento_crud
+    
+    all_procedimentos_data = []
+    for cliente in clientes:
+        if not cliente.is_admin and cliente.ativo:
+            procedimentos = procedimento_crud.get_procedimentos_by_cliente(cliente.id)
+            if procedimentos:
+                df_procedimentos = procedimento_crud.procedimentos_to_dataframe(procedimentos)
+                # Filtra pelos meses selecionados
+                if 'Mes_Referencia' in df_procedimentos.columns:
+                    df_procedimentos_filtrado = df_procedimentos[df_procedimentos['Mes_Referencia'].isin(meses_selecionados)]
+                    if not df_procedimentos_filtrado.empty:
+                        df_procedimentos_filtrado['Cliente_ID'] = cliente.id
+                        df_procedimentos_filtrado['Nome_Clinica'] = cliente.nome_da_clinica
+                        all_procedimentos_data.append(df_procedimentos_filtrado)
+    
+    if all_procedimentos_data:
+        # Concatena todos os dados de procedimentos
+        df_procedimentos_consolidado = pd.concat(all_procedimentos_data, ignore_index=True)
+        
+        # Calcula métricas consolidadas de procedimentos
+        procedimentos_metrics = {
+            'total_procedimentos': len(df_procedimentos_consolidado),
+            'total_faturamento_procedimentos': df_procedimentos_consolidado['Valor_da_Venda'].sum(),
+            'ticket_medio_procedimentos': df_procedimentos_consolidado['Valor_da_Venda'].mean(),
+            'procedimentos_fechados': len(df_procedimentos_consolidado[df_procedimentos_consolidado['Data_Fechou_Cirurgia'].notna()]),
+            'clinicas_com_procedimentos': len(set(df_procedimentos_consolidado['Cliente_ID'])),
+            'procedimentos_por_clinica': len(df_procedimentos_consolidado) / len(set(df_procedimentos_consolidado['Cliente_ID'])) if len(set(df_procedimentos_consolidado['Cliente_ID'])) > 0 else 0
+        }
+        
+        # KPIs de procedimentos
+        st.markdown("### 📊 Métricas de Procedimentos")
+        
+        col_proc1, col_proc2, col_proc3, col_proc4 = st.columns(4)
+        
+        with col_proc1:
+            create_metric_card(
+                value=f"{procedimentos_metrics['total_procedimentos']:,.0f}".replace(",", "."),
+                label="Total de Procedimentos"
+            )
+        
+        with col_proc2:
+            create_metric_card(
+                value=f"R$ {procedimentos_metrics['total_faturamento_procedimentos']:,.0f}".replace(",", "."),
+                label="Faturamento Procedimentos"
+            )
+        
+        with col_proc3:
+            create_metric_card(
+                value=f"R$ {procedimentos_metrics['ticket_medio_procedimentos']:,.0f}".replace(",", "."),
+                label="Ticket Médio Procedimentos"
+            )
+        
+        with col_proc4:
+            create_metric_card(
+                value=f"{procedimentos_metrics['procedimentos_fechados']:,.0f}".replace(",", "."),
+                label="Procedimentos Fechados"
+            )
+        
+        # Gráfico de procedimentos por clínica
+        st.markdown("### 🏥 Procedimentos por Clínica")
+        
+        procedimentos_por_clinica = df_procedimentos_consolidado.groupby('Nome_Clinica').agg({
+            'Procedimento': 'count',
+            'Valor_da_Venda': 'sum'
+        }).reset_index()
+        procedimentos_por_clinica.columns = ['Clinica', 'Total_Procedimentos', 'Faturamento_Total']
+        
+        col_chart1, col_chart2 = st.columns(2)
+        
+        with col_chart1:
+            # Gráfico de quantidade de procedimentos
+            fig_procedimentos_qty = go.Figure()
+            fig_procedimentos_qty.add_trace(go.Bar(
+                x=procedimentos_por_clinica['Clinica'],
+                y=procedimentos_por_clinica['Total_Procedimentos'],
+                name='Procedimentos',
+                marker_color='#3B82F6',
+                text=procedimentos_por_clinica['Total_Procedimentos'],
+                textposition='auto'
+            ))
+            
+            fig_procedimentos_qty.update_layout(
+                title="Quantidade de Procedimentos por Clínica",
+                xaxis_title="Clínicas",
+                yaxis_title="Número de Procedimentos",
+                height=400
+            )
+            
+            st.plotly_chart(fig_procedimentos_qty)
+        
+        with col_chart2:
+            # Gráfico de faturamento de procedimentos
+            fig_procedimentos_fat = go.Figure()
+            fig_procedimentos_fat.add_trace(go.Bar(
+                x=procedimentos_por_clinica['Clinica'],
+                y=procedimentos_por_clinica['Faturamento_Total'],
+                name='Faturamento',
+                marker_color='#10B981',
+                text=[f"R$ {x:,.0f}".replace(",", ".") for x in procedimentos_por_clinica['Faturamento_Total']],
+                textposition='auto'
+            ))
+            
+            fig_procedimentos_fat.update_layout(
+                title="Faturamento de Procedimentos por Clínica",
+                xaxis_title="Clínicas",
+                yaxis_title="Faturamento (R$)",
+                height=400
+            )
+            
+            st.plotly_chart(fig_procedimentos_fat)
+        
+        # Análise por tipo de procedimento
+        if 'Tipo' in df_procedimentos_consolidado.columns and df_procedimentos_consolidado['Tipo'].notna().any():
+            st.markdown("### 📋 Análise por Tipo de Procedimento")
+            
+            tipo_analysis = df_procedimentos_consolidado.groupby('Tipo').agg({
+                'Procedimento': 'count',
+                'Valor_da_Venda': 'sum'
+            }).reset_index()
+            tipo_analysis.columns = ['Tipo', 'Quantidade', 'Faturamento']
+            tipo_analysis = tipo_analysis.sort_values('Quantidade', ascending=False)
+            
+            col_tipo1, col_tipo2 = st.columns(2)
+            
+            with col_tipo1:
+                # Gráfico de pizza - distribuição por tipo
+                fig_tipo_pie = go.Figure(data=[go.Pie(
+                    labels=tipo_analysis['Tipo'],
+                    values=tipo_analysis['Quantidade'],
+                    hole=0.3
+                )])
+                
+                fig_tipo_pie.update_layout(
+                    title="Distribuição por Tipo de Procedimento",
+                    height=400
+                )
+                
+                st.plotly_chart(fig_tipo_pie)
+            
+            with col_tipo2:
+                # Gráfico de barras - faturamento por tipo
+                fig_tipo_bar = go.Figure()
+                fig_tipo_bar.add_trace(go.Bar(
+                    x=tipo_analysis['Tipo'],
+                    y=tipo_analysis['Faturamento'],
+                    name='Faturamento',
+                    marker_color='#F59E0B',
+                    text=[f"R$ {x:,.0f}".replace(",", ".") for x in tipo_analysis['Faturamento']],
+                    textposition='auto'
+                ))
+                
+                fig_tipo_bar.update_layout(
+                    title="Faturamento por Tipo de Procedimento",
+                    xaxis_title="Tipo",
+                    yaxis_title="Faturamento (R$)",
+                    height=400
+                )
+                
+                st.plotly_chart(fig_tipo_bar)
+        
+        # Análise temporal de procedimentos
+        if 'Mes_Referencia' in df_procedimentos_consolidado.columns:
+            st.markdown("### 📅 Evolução Temporal de Procedimentos")
+            
+            procedimentos_mensais = df_procedimentos_consolidado.groupby('Mes_Referencia').agg({
+                'Procedimento': 'count',
+                'Valor_da_Venda': 'sum'
+            }).reset_index()
+            procedimentos_mensais.columns = ['Mes', 'Quantidade', 'Faturamento']
+            
+            # Ordena os meses corretamente
+            mes_order = {
+                'Janeiro': 1, 'Fevereiro': 2, 'Março': 3, 'Abril': 4,
+                'Maio': 5, 'Junho': 6, 'Julho': 7, 'Agosto': 8,
+                'Setembro': 9, 'Outubro': 10, 'Novembro': 11, 'Dezembro': 12
+            }
+            procedimentos_mensais['mes_order'] = procedimentos_mensais['Mes'].map(mes_order)
+            procedimentos_mensais = procedimentos_mensais.sort_values('mes_order').drop('mes_order', axis=1)
+            
+            fig_procedimentos_temporal = go.Figure()
+            
+            fig_procedimentos_temporal.add_trace(go.Scatter(
+                x=procedimentos_mensais['Mes'],
+                y=procedimentos_mensais['Quantidade'],
+                name='Quantidade de Procedimentos',
+                line=dict(color='#3B82F6', width=3),
+                mode='lines+markers'
+            ))
+            
+            fig_procedimentos_temporal.add_trace(go.Scatter(
+                x=procedimentos_mensais['Mes'],
+                y=procedimentos_mensais['Faturamento'],
+                name='Faturamento (R$)',
+                line=dict(color='#10B981', width=3),
+                mode='lines+markers',
+                yaxis='y2'
+            ))
+            
+            fig_procedimentos_temporal.update_layout(
+                title="Evolução Mensal de Procedimentos",
+                xaxis_title="Meses",
+                yaxis_title="Quantidade de Procedimentos",
+                yaxis2=dict(title="Faturamento (R$)", overlaying="y", side="right"),
+                height=400
+            )
+            
+            st.plotly_chart(fig_procedimentos_temporal)
+        
+        # Tabela de ranking de procedimentos
+        st.markdown("### 🏆 Ranking de Procedimentos por Clínica")
+        
+        ranking_procedimentos = procedimentos_por_clinica.sort_values('Total_Procedimentos', ascending=False)
+        
+        col_rank1, col_rank2 = st.columns(2)
+        
+        with col_rank1:
+            st.markdown("**📊 Ranking por Quantidade**")
+            for i, (_, row) in enumerate(ranking_procedimentos.iterrows(), 1):
+                st.write(f"{i}º **{row['Clinica']}** - {row['Total_Procedimentos']:,.0f} procedimentos".replace(",", "."))
+        
+        with col_rank2:
+            st.markdown("**💰 Ranking por Faturamento**")
+            ranking_fat = procedimentos_por_clinica.sort_values('Faturamento_Total', ascending=False)
+            for i, (_, row) in enumerate(ranking_fat.iterrows(), 1):
+                st.write(f"{i}º **{row['Clinica']}** - R$ {row['Faturamento_Total']:,.0f}".replace(",", "."))
+    
+    else:
+        st.info("Nenhum dado de procedimentos encontrado para análise consolidada.")
 
 def create_executive_summary(df_filtered):
     """Cria seção de resumo executivo com 10 KPIs mais importantes"""
@@ -1104,6 +1340,207 @@ def create_insights_section(df_filtered):
         - **Padronizar processo** de follow-up de leads
         """)
 
+def create_procedimentos_analysis(df_procedimentos):
+    """Cria análise detalhada de procedimentos"""
+    st.subheader("🏥 Análise de Procedimentos")
+    
+    if df_procedimentos.empty:
+        st.info("Nenhum procedimento encontrado para análise.")
+        return
+    
+    # KPIs principais de procedimentos
+    col1, col2, col3, col4 = st.columns(4)
+    
+    total_procedimentos = len(df_procedimentos)
+    total_faturamento_procedimentos = df_procedimentos['Valor_da_Venda'].sum()
+    ticket_medio_procedimentos = df_procedimentos['Valor_da_Venda'].mean()
+    procedimentos_fechados = len(df_procedimentos[df_procedimentos['Data_Fechou_Cirurgia'].notna()])
+    
+    with col1:
+        st.metric(
+            label="Total de Procedimentos",
+            value=f"{total_procedimentos}",
+            help="Total de procedimentos registrados"
+        )
+    
+    with col2:
+        st.metric(
+            label="Faturamento Total",
+            value=f"R$ {total_faturamento_procedimentos:,.0f}".replace(",", "."),
+            help="Faturamento total dos procedimentos"
+        )
+    
+    with col3:
+        st.metric(
+            label="Ticket Médio",
+            value=f"R$ {ticket_medio_procedimentos:,.0f}".replace(",", "."),
+            help="Valor médio por procedimento"
+        )
+    
+    with col4:
+        st.metric(
+            label="Procedimentos Fechados",
+            value=f"{procedimentos_fechados}",
+            delta=f"{procedimentos_fechados/total_procedimentos*100:.1f}%" if total_procedimentos > 0 else "0%",
+            help="Procedimentos com cirurgia fechada"
+        )
+    
+    # Análise por tipo de procedimento
+    st.markdown("### 📊 Análise por Tipo de Procedimento")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        # Gráfico de pizza - Distribuição por tipo
+        if 'Tipo' in df_procedimentos.columns and df_procedimentos['Tipo'].notna().any():
+            tipo_counts = df_procedimentos['Tipo'].value_counts()
+            fig_tipo = px.pie(
+                values=tipo_counts.values,
+                names=tipo_counts.index,
+                title="Distribuição por Tipo de Procedimento",
+                color_discrete_sequence=px.colors.qualitative.Set3
+            )
+            st.plotly_chart(fig_tipo)
+        else:
+            st.info("Dados de tipo não disponíveis")
+    
+    with col2:
+        # Gráfico de barras - Faturamento por tipo
+        if 'Tipo' in df_procedimentos.columns and df_procedimentos['Tipo'].notna().any():
+            tipo_faturamento = df_procedimentos.groupby('Tipo')['Valor_da_Venda'].sum().sort_values(ascending=False)
+            fig_faturamento_tipo = px.bar(
+                x=tipo_faturamento.index,
+                y=tipo_faturamento.values,
+                title="Faturamento por Tipo de Procedimento",
+                color=tipo_faturamento.values,
+                color_continuous_scale='Viridis',
+                text=[f"R$ {x:,.0f}".replace(",", ".") for x in tipo_faturamento.values]
+            )
+            fig_faturamento_tipo.update_layout(showlegend=False)
+            st.plotly_chart(fig_faturamento_tipo)
+        else:
+            st.info("Dados de tipo não disponíveis")
+    
+    # Análise temporal
+    st.markdown("### 📅 Análise Temporal")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        # Procedimentos por mês
+        if 'Mes_Referencia' in df_procedimentos.columns:
+            procedimentos_mes = df_procedimentos['Mes_Referencia'].value_counts()
+            fig_mes = px.bar(
+                x=procedimentos_mes.index,
+                y=procedimentos_mes.values,
+                title="Procedimentos por Mês",
+                color=procedimentos_mes.values,
+                color_continuous_scale='Blues',
+                text=procedimentos_mes.values
+            )
+            fig_mes.update_layout(showlegend=False)
+            st.plotly_chart(fig_mes)
+    
+    with col2:
+        # Faturamento por mês
+        if 'Mes_Referencia' in df_procedimentos.columns:
+            faturamento_mes = df_procedimentos.groupby('Mes_Referencia')['Valor_da_Venda'].sum()
+            fig_faturamento_mes = px.bar(
+                x=faturamento_mes.index,
+                y=faturamento_mes.values,
+                title="Faturamento por Mês",
+                color=faturamento_mes.values,
+                color_continuous_scale='Greens',
+                text=[f"R$ {x:,.0f}".replace(",", ".") for x in faturamento_mes.values]
+            )
+            fig_faturamento_mes.update_layout(showlegend=False)
+            st.plotly_chart(fig_faturamento_mes)
+    
+    # Análise de formas de pagamento
+    st.markdown("### 💳 Análise de Formas de Pagamento")
+    
+    if 'Forma_Pagamento' in df_procedimentos.columns and df_procedimentos['Forma_Pagamento'].notna().any():
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            # Distribuição por forma de pagamento
+            pagamento_counts = df_procedimentos['Forma_Pagamento'].value_counts()
+            fig_pagamento = px.pie(
+                values=pagamento_counts.values,
+                names=pagamento_counts.index,
+                title="Distribuição por Forma de Pagamento",
+                color_discrete_sequence=px.colors.qualitative.Pastel
+            )
+            st.plotly_chart(fig_pagamento)
+        
+        with col2:
+            # Faturamento por forma de pagamento
+            pagamento_faturamento = df_procedimentos.groupby('Forma_Pagamento')['Valor_da_Venda'].sum().sort_values(ascending=False)
+            fig_pagamento_fat = px.bar(
+                x=pagamento_faturamento.index,
+                y=pagamento_faturamento.values,
+                title="Faturamento por Forma de Pagamento",
+                color=pagamento_faturamento.values,
+                color_continuous_scale='Oranges',
+                text=[f"R$ {x:,.0f}".replace(",", ".") for x in pagamento_faturamento.values]
+            )
+            fig_pagamento_fat.update_layout(showlegend=False)
+            st.plotly_chart(fig_pagamento_fat)
+    else:
+        st.info("Dados de forma de pagamento não disponíveis")
+    
+    # Tabela detalhada de procedimentos
+    st.markdown("### 📋 Detalhamento dos Procedimentos")
+    
+    # Prepara dados para exibição
+    df_display = df_procedimentos.copy()
+    
+    # Formata datas
+    date_columns = ['Data_Primeiro_Contato', 'Data_Compareceu_Consulta', 'Data_Fechou_Cirurgia']
+    for col in date_columns:
+        if col in df_display.columns:
+            df_display[col] = df_display[col].dt.strftime('%d/%m/%Y').fillna('')
+    
+    # Formata valores monetários
+    currency_columns = ['Valor_da_Venda', 'Valor_Parcelado']
+    for col in currency_columns:
+        if col in df_display.columns:
+            df_display[col] = df_display[col].apply(lambda x: f"R$ {x:,.2f}".replace(",", ".") if pd.notna(x) and x > 0 else "")
+    
+    # Seleciona colunas para exibição
+    display_columns = [
+        'Mes_Referencia', 'Procedimento', 'Tipo', 'Data_Primeiro_Contato',
+        'Data_Compareceu_Consulta', 'Data_Fechou_Cirurgia', 'Forma_Pagamento',
+        'Valor_da_Venda', 'Valor_Parcelado', 'Quantidade_na_Mesma_Venda'
+    ]
+    
+    # Filtra colunas que existem no DataFrame
+    available_columns = [col for col in display_columns if col in df_display.columns]
+    df_display = df_display[available_columns]
+    
+    # Renomeia colunas para exibição
+    column_mapping = {
+        'Mes_Referencia': 'Mês',
+        'Procedimento': 'Procedimento',
+        'Tipo': 'Tipo',
+        'Data_Primeiro_Contato': '1° Contato',
+        'Data_Compareceu_Consulta': 'Compareceu Consulta',
+        'Data_Fechou_Cirurgia': 'Fechou Cirurgia',
+        'Forma_Pagamento': 'Forma de Pagamento',
+        'Valor_da_Venda': 'Valor da Venda',
+        'Valor_Parcelado': 'Valor Parcelado',
+        'Quantidade_na_Mesma_Venda': 'Qtd. na Venda'
+    }
+    
+    df_display = df_display.rename(columns=column_mapping)
+    
+    # Exibe tabela com paginação
+    st.dataframe(
+        df_display,
+        height=400,
+        hide_index=True
+    )
+
 def load_data_from_database(cliente_id: int, meses_selecionados: list = None) -> pd.DataFrame:
     """
     Carrega dados do banco de dados para um cliente específico
@@ -1123,4 +1560,24 @@ def load_data_from_database(cliente_id: int, meses_selecionados: list = None) ->
         dados = dados_crud.get_dados_by_cliente(cliente_id)
     
     return dados_crud.dados_to_dataframe(dados)
+
+def load_procedimentos_from_database(cliente_id: int, meses_selecionados: list = None) -> pd.DataFrame:
+    """
+    Carrega dados de procedimentos do banco de dados para um cliente específico
+    
+    Args:
+        cliente_id: ID do cliente
+        meses_selecionados: Lista de meses para filtrar (opcional)
+    
+    Returns:
+        pd.DataFrame: DataFrame com os dados de procedimentos
+    """
+    from database import procedimento_crud
+    
+    if meses_selecionados:
+        procedimentos = procedimento_crud.get_procedimentos_by_period(cliente_id, meses_selecionados)
+    else:
+        procedimentos = procedimento_crud.get_procedimentos_by_cliente(cliente_id)
+    
+    return procedimento_crud.procedimentos_to_dataframe(procedimentos)
 

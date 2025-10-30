@@ -18,7 +18,7 @@ from dashboard import (
     create_executive_summary, create_kpi_cards, create_funnel_analysis, create_revenue_analysis,
     create_channel_analysis, create_cost_analysis, create_monthly_trends,
     create_insights_section, load_data_from_database, create_conversion_analysis, create_budget_analysis,
-    create_admin_consolidated_dashboard
+    create_admin_consolidated_dashboard, create_procedimentos_analysis, load_procedimentos_from_database
 )
 
 # Carregar variáveis de ambiente
@@ -93,25 +93,49 @@ def main_dashboard():
                     import sys
                     import os
                     
-                    result = subprocess.run([sys.executable, "sync_sheets.py"], 
-                                          capture_output=True, text=True, cwd=".", timeout=60)
+                    # 1. Sincroniza dados da aba "Controle de Leads"
+                    st.info("📊 Sincronizando dados de Leads...")
+                    result_leads = subprocess.run([sys.executable, "sync_sheets.py"], 
+                                                capture_output=True, text=True, cwd=".", timeout=60)
                     
-                    if result.returncode == 0:
-                        st.success("✅ Dados sincronizados com sucesso!")
+                    # 2. Importa dados da aba "Procedimentos"
+                    st.info("🏥 Importando dados de Procedimentos...")
+                    result_procedimentos = subprocess.run([sys.executable, "import_procedimentos.py"], 
+                                                        capture_output=True, text=True, cwd=".", timeout=60)
+                    
+                    # Verifica resultados
+                    success_leads = result_leads.returncode == 0
+                    success_procedimentos = result_procedimentos.returncode == 0
+                    
+                    if success_leads and success_procedimentos:
+                        st.success("✅ Todos os dados foram atualizados com sucesso!")
                         st.info("🔄 Recarregue a página para ver os dados atualizados")
                         
-                        # Mostra resumo da sincronização
-                        if "sincronizada!" in result.stdout:
-                            lines = result.stdout.split('\n')
+                        # Mostra resumo da sincronização de leads
+                        if "sincronizada!" in result_leads.stdout:
+                            lines = result_leads.stdout.split('\n')
                             for line in lines:
                                 if "sincronizada!" in line:
                                     st.info(f"📊 {line}")
                                     break
+                        
+                        # Mostra resumo da importação de procedimentos
+                        if "Importados" in result_procedimentos.stdout:
+                            lines = result_procedimentos.stdout.split('\n')
+                            for line in lines:
+                                if "Importados" in line and "procedimentos" in line:
+                                    st.info(f"🏥 {line}")
                     else:
-                        st.error(f"❌ Erro ao sincronizar dados (código {result.returncode})")
-                        if result.stderr:
-                            st.error(f"Detalhes do erro: {result.stderr}")
-                        st.code(result.stdout)
+                        if not success_leads:
+                            st.error(f"❌ Erro na sincronização de Leads (código {result_leads.returncode})")
+                            if result_leads.stderr:
+                                st.error(f"Detalhes do erro: {result_leads.stderr}")
+                            st.code(result_leads.stdout)
+                        if not success_procedimentos:
+                            st.error(f"❌ Erro na importação de Procedimentos (código {result_procedimentos.returncode})")
+                            if result_procedimentos.stderr:
+                                st.error(f"Detalhes do erro: {result_procedimentos.stderr}")
+                            st.code(result_procedimentos.stdout)
                 except subprocess.TimeoutExpired:
                     st.error("⏰ Timeout: A sincronização demorou muito para responder")
                 except Exception as e:
@@ -124,6 +148,9 @@ def main_dashboard():
     if df.empty:
         st.warning("Nenhum dado encontrado para esta clínica. Entre em contato com o suporte.")
         return
+    
+    # Carrega dados de procedimentos
+    df_procedimentos = load_procedimentos_from_database(cliente_id)
     
     # Título do dashboard
     if auth.is_admin() and cliente_id != auth.get_cliente_id():
@@ -169,6 +196,9 @@ def main_dashboard():
     # Aplica o filtro
     df_filtrado = df[df['Meses'].isin(meses_selecionados)]
     
+    # Filtra procedimentos pelos meses selecionados
+    df_procedimentos_filtrado = df_procedimentos[df_procedimentos['Mes_Referencia'].isin(meses_selecionados)] if not df_procedimentos.empty else df_procedimentos
+    
     # Garante que o DataFrame não está vazio
     if df_filtrado.empty:
         st.error("Nenhum dado encontrado para os meses selecionados. Por favor, ajuste o filtro na barra lateral.")
@@ -197,6 +227,11 @@ def main_dashboard():
     st.markdown("---")
     create_monthly_trends(df_filtrado)
     st.markdown("---")
+    
+    # Nova seção de procedimentos
+    create_procedimentos_analysis(df_procedimentos_filtrado)
+    st.markdown("---")
+    
     create_insights_section(df_filtrado)
 
 def main():

@@ -14,7 +14,7 @@ import bcrypt
 from datetime import datetime
 from dotenv import load_dotenv
 
-from models import Base, Cliente, DadosDashboard
+from models import Base, Cliente, DadosDashboard, Procedimento
 
 # Carregar variáveis de ambiente
 load_dotenv()
@@ -595,9 +595,157 @@ class AdminDashboardCRUD:
         finally:
             self.db_manager.close_session(session)
 
+class ProcedimentoCRUD:
+    """Operações CRUD para a tabela de procedimentos"""
+    
+    def __init__(self, db_manager: DatabaseManager):
+        self.db_manager = db_manager
+    
+    def create_procedimento(self, cliente_id: int, procedimento: str, mes_referencia: str, 
+                           ano_referencia: int = 2024, **kwargs) -> Optional[Procedimento]:
+        """Cria um novo procedimento"""
+        session = self.db_manager.get_session()
+        try:
+            procedimento_obj = Procedimento(
+                cliente_id=cliente_id,
+                procedimento=procedimento,
+                mes_referencia=mes_referencia,
+                ano_referencia=ano_referencia,
+                **kwargs
+            )
+            session.add(procedimento_obj)
+            session.commit()
+            session.refresh(procedimento_obj)
+            return procedimento_obj
+        except SQLAlchemyError as e:
+            session.rollback()
+            print(f"❌ Erro ao criar procedimento: {e}")
+            return None
+        finally:
+            self.db_manager.close_session(session)
+    
+    def get_procedimentos_by_cliente(self, cliente_id: int) -> List[Procedimento]:
+        """Busca todos os procedimentos de um cliente"""
+        session = self.db_manager.get_session()
+        try:
+            return session.query(Procedimento).filter(
+                Procedimento.cliente_id == cliente_id
+            ).order_by(Procedimento.ano_referencia, Procedimento.mes_referencia, Procedimento.data_criacao).all()
+        except SQLAlchemyError as e:
+            print(f"❌ Erro ao buscar procedimentos do cliente: {e}")
+            return []
+        finally:
+            self.db_manager.close_session(session)
+    
+    def get_procedimentos_by_period(self, cliente_id: int, meses: List[str], ano: int = 2024) -> List[Procedimento]:
+        """Busca procedimentos de um cliente para meses específicos"""
+        session = self.db_manager.get_session()
+        try:
+            return session.query(Procedimento).filter(
+                Procedimento.cliente_id == cliente_id,
+                Procedimento.mes_referencia.in_(meses),
+                Procedimento.ano_referencia == ano
+            ).order_by(Procedimento.mes_referencia, Procedimento.data_criacao).all()
+        except SQLAlchemyError as e:
+            print(f"❌ Erro ao buscar procedimentos do período: {e}")
+            return []
+        finally:
+            self.db_manager.close_session(session)
+    
+    def procedimentos_to_dataframe(self, procedimentos: List[Procedimento]) -> pd.DataFrame:
+        """Converte procedimentos do banco para DataFrame do pandas"""
+        if not procedimentos:
+            return pd.DataFrame()
+        
+        data = {
+            'ID': [p.id for p in procedimentos],
+            'Cliente_ID': [p.cliente_id for p in procedimentos],
+            'Data_Primeiro_Contato': [p.data_primeiro_contato for p in procedimentos],
+            'Data_Compareceu_Consulta': [p.data_compareceu_consulta for p in procedimentos],
+            'Data_Fechou_Cirurgia': [p.data_fechou_cirurgia for p in procedimentos],
+            'Procedimento': [p.procedimento for p in procedimentos],
+            'Tipo': [p.tipo for p in procedimentos],
+            'Quantidade_na_Mesma_Venda': [p.quantidade_na_mesma_venda for p in procedimentos],
+            'Forma_Pagamento': [p.forma_pagamento for p in procedimentos],
+            'Valor_da_Venda': [p.valor_da_venda for p in procedimentos],
+            'Valor_Parcelado': [p.valor_parcelado for p in procedimentos],
+            'Mes_Referencia': [p.mes_referencia for p in procedimentos],
+            'Ano_Referencia': [p.ano_referencia for p in procedimentos],
+            'Data_Criacao': [p.data_criacao for p in procedimentos]
+        }
+        
+        df = pd.DataFrame(data)
+        
+        # Ordena os meses na ordem correta
+        if not df.empty:
+            mes_order = {
+                'Janeiro': 1, 'Fevereiro': 2, 'Março': 3, 'Abril': 4,
+                'Maio': 5, 'Junho': 6, 'Julho': 7, 'Agosto': 8,
+                'Setembro': 9, 'Outubro': 10, 'Novembro': 11, 'Dezembro': 12
+            }
+            
+            df['mes_order'] = df['Mes_Referencia'].map(mes_order)
+            df = df.sort_values(['Ano_Referencia', 'mes_order', 'Data_Criacao']).drop('mes_order', axis=1)
+        
+        return df
+    
+    def update_procedimento(self, procedimento_id: int, **kwargs) -> bool:
+        """Atualiza dados de um procedimento"""
+        session = self.db_manager.get_session()
+        try:
+            procedimento = session.query(Procedimento).filter(Procedimento.id == procedimento_id).first()
+            if not procedimento:
+                return False
+            
+            for key, value in kwargs.items():
+                if hasattr(procedimento, key):
+                    setattr(procedimento, key, value)
+            
+            procedimento.data_atualizacao = datetime.utcnow()
+            session.commit()
+            return True
+        except SQLAlchemyError as e:
+            session.rollback()
+            print(f"❌ Erro ao atualizar procedimento: {e}")
+            return False
+        finally:
+            self.db_manager.close_session(session)
+    
+    def delete_procedimento(self, procedimento_id: int) -> bool:
+        """Remove um procedimento"""
+        session = self.db_manager.get_session()
+        try:
+            procedimento = session.query(Procedimento).filter(Procedimento.id == procedimento_id).first()
+            if procedimento:
+                session.delete(procedimento)
+                session.commit()
+                return True
+            return False
+        except SQLAlchemyError as e:
+            session.rollback()
+            print(f"❌ Erro ao deletar procedimento: {e}")
+            return False
+        finally:
+            self.db_manager.close_session(session)
+    
+    def delete_procedimentos_by_cliente(self, cliente_id: int) -> bool:
+        """Remove todos os procedimentos de um cliente"""
+        session = self.db_manager.get_session()
+        try:
+            session.query(Procedimento).filter(Procedimento.cliente_id == cliente_id).delete()
+            session.commit()
+            return True
+        except SQLAlchemyError as e:
+            session.rollback()
+            print(f"❌ Erro ao deletar procedimentos do cliente: {e}")
+            return False
+        finally:
+            self.db_manager.close_session(session)
+
 # Instância global do gerenciador de banco
 db_manager = DatabaseManager()
 cliente_crud = ClienteCRUD(db_manager)
 dados_crud = DadosDashboardCRUD(db_manager)
 admin_dashboard_crud = AdminDashboardCRUD(db_manager)
+procedimento_crud = ProcedimentoCRUD(db_manager)
 
