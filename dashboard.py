@@ -949,8 +949,10 @@ def create_admin_consolidated_dashboard():
                 title="Quantidade de Procedimentos por Clínica",
                 xaxis_title="Clínicas",
                 yaxis_title="Número de Procedimentos",
-                height=400
+                height=340,
+                margin=dict(t=60, b=40, l=20, r=20)
             )
+            fig_procedimentos_qty.update_xaxes(tickangle=-20, categoryorder='total descending')
             
             st.plotly_chart(fig_procedimentos_qty)
         
@@ -970,8 +972,10 @@ def create_admin_consolidated_dashboard():
                 title="Faturamento de Procedimentos por Clínica",
                 xaxis_title="Clínicas",
                 yaxis_title="Faturamento (R$)",
-                height=400
+                height=340,
+                margin=dict(t=60, b=40, l=20, r=20)
             )
+            fig_procedimentos_fat.update_xaxes(tickangle=-20, categoryorder='total descending')
             
             st.plotly_chart(fig_procedimentos_fat)
         
@@ -998,7 +1002,8 @@ def create_admin_consolidated_dashboard():
                 
                 fig_tipo_pie.update_layout(
                     title="Distribuição por Tipo de Procedimento",
-                    height=400
+                    height=320,
+                    margin=dict(t=60, b=20, l=20, r=20)
                 )
                 
                 st.plotly_chart(fig_tipo_pie)
@@ -1019,8 +1024,10 @@ def create_admin_consolidated_dashboard():
                     title="Faturamento por Tipo de Procedimento",
                     xaxis_title="Tipo",
                     yaxis_title="Faturamento (R$)",
-                    height=400
+                    height=320,
+                    margin=dict(t=60, b=40, l=20, r=20)
                 )
+                fig_tipo_bar.update_xaxes(tickangle=-20)
                 
                 st.plotly_chart(fig_tipo_bar)
         
@@ -1067,7 +1074,8 @@ def create_admin_consolidated_dashboard():
                 xaxis_title="Meses",
                 yaxis_title="Quantidade de Procedimentos",
                 yaxis2=dict(title="Faturamento (R$)", overlaying="y", side="right"),
-                height=400
+                height=360,
+                margin=dict(t=60, b=40, l=20, r=20)
             )
             
             st.plotly_chart(fig_procedimentos_temporal)
@@ -1348,7 +1356,7 @@ def create_procedimentos_analysis(df_procedimentos):
         st.info("Nenhum procedimento encontrado para análise.")
         return
     
-    # KPIs principais de procedimentos
+    # KPIs principais de procedimentos (layout mais enxuto)
     col1, col2, col3, col4 = st.columns(4)
     
     total_procedimentos = len(df_procedimentos)
@@ -1385,8 +1393,8 @@ def create_procedimentos_analysis(df_procedimentos):
             help="Procedimentos com cirurgia fechada"
         )
     
-    # Análise por tipo de procedimento
-    st.markdown("### 📊 Análise por Tipo de Procedimento")
+    # Análises principais
+    st.markdown("### 📊 Distribuições e Destaques")
     
     col1, col2 = st.columns(2)
     
@@ -1397,9 +1405,10 @@ def create_procedimentos_analysis(df_procedimentos):
             fig_tipo = px.pie(
                 values=tipo_counts.values,
                 names=tipo_counts.index,
-                title="Distribuição por Tipo de Procedimento",
+                title="Distribuição por Tipo",
                 color_discrete_sequence=px.colors.qualitative.Set3
             )
+            fig_tipo.update_layout(height=320, margin=dict(t=60, b=20, l=20, r=20))
             st.plotly_chart(fig_tipo)
         else:
             st.info("Dados de tipo não disponíveis")
@@ -1411,18 +1420,19 @@ def create_procedimentos_analysis(df_procedimentos):
             fig_faturamento_tipo = px.bar(
                 x=tipo_faturamento.index,
                 y=tipo_faturamento.values,
-                title="Faturamento por Tipo de Procedimento",
+                title="Faturamento por Tipo",
                 color=tipo_faturamento.values,
                 color_continuous_scale='Viridis',
                 text=[f"R$ {x:,.0f}".replace(",", ".") for x in tipo_faturamento.values]
             )
-            fig_faturamento_tipo.update_layout(showlegend=False)
+            fig_faturamento_tipo.update_layout(showlegend=False, height=320, margin=dict(t=60, b=40, l=20, r=20))
+            fig_faturamento_tipo.update_xaxes(tickangle=-20)
             st.plotly_chart(fig_faturamento_tipo)
         else:
             st.info("Dados de tipo não disponíveis")
     
     # Análise temporal
-    st.markdown("### 📅 Análise Temporal")
+    st.markdown("### 📅 Evolução Mensal")
     
     col1, col2 = st.columns(2)
     
@@ -1433,12 +1443,15 @@ def create_procedimentos_analysis(df_procedimentos):
             fig_mes = px.bar(
                 x=procedimentos_mes.index,
                 y=procedimentos_mes.values,
-                title="Procedimentos por Mês",
+                title="Quantidade por Mês",
                 color=procedimentos_mes.values,
                 color_continuous_scale='Blues',
                 text=procedimentos_mes.values
             )
-            fig_mes.update_layout(showlegend=False)
+            fig_mes.update_layout(showlegend=False, height=300, margin=dict(t=60, b=40, l=20, r=20))
+            fig_mes.update_xaxes(categoryorder='array', categoryarray=[
+                'Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'
+            ])
             st.plotly_chart(fig_mes)
     
     with col2:
@@ -1453,7 +1466,10 @@ def create_procedimentos_analysis(df_procedimentos):
                 color_continuous_scale='Greens',
                 text=[f"R$ {x:,.0f}".replace(",", ".") for x in faturamento_mes.values]
             )
-            fig_faturamento_mes.update_layout(showlegend=False)
+            fig_faturamento_mes.update_layout(showlegend=False, height=300, margin=dict(t=60, b=40, l=20, r=20))
+            fig_faturamento_mes.update_xaxes(categoryorder='array', categoryarray=[
+                'Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'
+            ])
             st.plotly_chart(fig_faturamento_mes)
     
     # Análise de formas de pagamento
@@ -1471,6 +1487,7 @@ def create_procedimentos_analysis(df_procedimentos):
                 title="Distribuição por Forma de Pagamento",
                 color_discrete_sequence=px.colors.qualitative.Pastel
             )
+            fig_pagamento.update_layout(height=300, margin=dict(t=60, b=20, l=20, r=20))
             st.plotly_chart(fig_pagamento)
         
         with col2:
@@ -1484,7 +1501,8 @@ def create_procedimentos_analysis(df_procedimentos):
                 color_continuous_scale='Oranges',
                 text=[f"R$ {x:,.0f}".replace(",", ".") for x in pagamento_faturamento.values]
             )
-            fig_pagamento_fat.update_layout(showlegend=False)
+            fig_pagamento_fat.update_layout(showlegend=False, height=300, margin=dict(t=60, b=40, l=20, r=20))
+            fig_pagamento_fat.update_xaxes(tickangle=-15)
             st.plotly_chart(fig_pagamento_fat)
     else:
         st.info("Dados de forma de pagamento não disponíveis")
