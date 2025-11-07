@@ -112,7 +112,8 @@ def create_funnel_analysis(df_filtered):
     
     fig_funnel.update_layout(
         title="Funil de Vendas - Valores Médios Mensais",
-        height=400
+        height=400,
+        margin=dict(t=60, b=40, l=20, r=20)
     )
     
     col1, col2 = st.columns([2, 1])
@@ -162,7 +163,8 @@ def create_revenue_analysis(df_filtered):
             yaxis=dict(title="Faturamento (R$)"),
             yaxis2=dict(title="Investimento (R$)", overlaying='y', side='right'),
             showlegend=True,
-            height=400
+            height=400,
+            margin=dict(t=60, b=40, l=20, r=20)
         )
         st.plotly_chart(fig_revenue)
     
@@ -183,7 +185,8 @@ def create_revenue_analysis(df_filtered):
         
         fig_roas.update_layout(
             title="ROAS e Ticket Médio",
-            height=400
+            height=400,
+            margin=dict(t=60, b=40, l=20, r=20)
         )
         
         fig_roas.update_yaxes(title_text="ROAS (x)", secondary_y=False)
@@ -236,6 +239,7 @@ def create_channel_analysis(df_filtered):
             title='Distribuição de Leads por Canal',
             color_discrete_sequence=px.colors.qualitative.Set3
         )
+        fig_leads.update_layout(height=350, margin=dict(t=60, b=20, l=20, r=20))
         st.plotly_chart(fig_leads)
     
     with col2:
@@ -249,7 +253,8 @@ def create_channel_analysis(df_filtered):
             color_continuous_scale='Viridis',
             text_auto='.1f' 
         )
-        fig_conversion.update_layout(showlegend=False)
+        fig_conversion.update_layout(showlegend=False, height=350, margin=dict(t=60, b=40, l=20, r=20))
+        fig_conversion.update_xaxes(tickangle=-15)
         st.plotly_chart(fig_conversion)
 
 def create_cost_analysis(df_filtered):
@@ -315,7 +320,8 @@ def create_cost_analysis(df_filtered):
     fig_costs.update_layout(
         title="Evolução dos Custos por Mês",
         yaxis_title="Custo (R$)",
-        height=400
+        height=400,
+        margin=dict(t=60, b=40, l=20, r=20)
     )
     
     st.plotly_chart(fig_costs)
@@ -360,7 +366,11 @@ def create_monthly_trends(df_filtered):
         row=2, col=2
     )
     
-    fig_trends.update_layout(height=600, showlegend=False)
+    fig_trends.update_layout(
+        height=600, 
+        showlegend=False,
+        margin=dict(t=60, b=40, l=20, r=20)
+    )
     st.plotly_chart(fig_trends)
 
 def create_conversion_analysis(df_filtered):
@@ -522,7 +532,8 @@ def create_budget_analysis(df_filtered):
             xaxis_title="Meses",
             yaxis_title="Valor (R$)",
             barmode='group',
-            height=400
+            height=400,
+            margin=dict(t=60, b=40, l=20, r=20)
         )
         
         st.plotly_chart(fig_budget)
