@@ -42,7 +42,7 @@ File: **`.github/workflows/deploy.yml`**
 
 | Variable      | Description |
 |---------------|-------------|
-| `DEPLOY_PATH` | Path on Droplet where `docker-compose.traefik.yml` lives (default: `/opt/prestige-clinic-dash`) |
+| `DEPLOY_PATH` | Path on Droplet where `docker-compose.traefik.yml` lives (default: `/opt/dashboard_clinic`) |
 
 ### GHCR visibility
 
@@ -54,13 +54,15 @@ File: **`.github/workflows/deploy.yml`**
 
 ## 3. Commands for the Droplet
 
+For a full step-by-step in Portuguese (first-time setup and updates), see **[DEPLOY_DROPLET.md](DEPLOY_DROPLET.md)**.
+
 ### One-time setup on the Droplet
 
 ```bash
 # Create app directory
-sudo mkdir -p /opt/prestige-clinic-dash
-sudo chown $USER:$USER /opt/prestige-clinic-dash
-cd /opt/prestige-clinic-dash
+sudo mkdir -p /opt/dashboard_clinic
+sudo chown $USER:$USER /opt/dashboard_clinic
+cd /opt/dashboard_clinic
 
 # Ensure Traefik network exists (if not already)
 docker network create traefik-public 2>/dev/null || true
@@ -69,13 +71,13 @@ docker network create traefik-public 2>/dev/null || true
 # Option A: clone repo and use compose from there
 git clone https://github.com/YOUR_ORG/prestige_clinic_dash.git .
 # Option B: copy only the compose file and create .env for IMAGE
-# scp docker-compose.traefik.yml user@DROPLET_IP:/opt/prestige-clinic-dash/
+# scp docker-compose.traefik.yml user@DROPLET_IP:/opt/dashboard_clinic/
 ```
 
 Create `.env` on the Droplet if you use GHCR image (CI sets `IMAGE`; for manual runs set it here):
 
 ```bash
-# /opt/prestige-clinic-dash/.env
+# /opt/dashboard_clinic/.env
 IMAGE=ghcr.io/YOUR_GITHUB_OWNER/dashboard_clinic:latest
 ```
 
@@ -102,7 +104,7 @@ docker push ghcr.io/OWNER/dashboard_clinic:latest
 ### Deploy / redeploy on the Droplet
 
 ```bash
-cd /opt/prestige-clinic-dash
+cd /opt/dashboard_clinic
 
 # Set image if not in .env (for GHCR)
 export IMAGE=ghcr.io/YOUR_OWNER/dashboard_clinic:latest
