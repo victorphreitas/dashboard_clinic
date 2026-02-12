@@ -1,20 +1,39 @@
-# Production compose for dashboard_clinic behind Traefik
-# Usage:
-#   docker compose -f docker-compose.traefik.yml up -d
-#   OR with Swarm: docker stack deploy -c docker-compose.traefik.yml prestige
+# GitOps: Traefik + dashboard_clinic (Streamlit)
+# Uso: docker compose -f docker-compose.traefik.yml up -d
 #
-# Prerequisites:
-#   - Traefik network created: docker network create traefik-public
-#   - Traefik running with Let's Encrypt (certresolver=letsencrypt)
+# Pré-requisitos no servidor:
+#   - acme.json criado com chmod 600 (para Let's Encrypt)
 #   - DNS: painel.agenciakimera.com -> 192.241.157.215
 
 services:
+  traefik:
+    image: traefik:v2.10
+    container_name: traefik
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:ro
+      - ./acme.json:/letsencrypt/acme.json
+    command:
+      - --api.dashboard=true
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      - --certificatesresolvers.letsencrypt.acme.tlschallenge=true
+      - --certificatesresolvers.letsencrypt.acme.email=victorphreitas@gmail.com
+      - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
+    networks:
+      - traefik-public
+
   dashboard_clinic:
-    # For local: IMAGE not set → dashboard_clinic:latest. For Droplet/CI: set IMAGE=ghcr.io/OWNER/dashboard_clinic:latest
     image: ${IMAGE:-dashboard_clinic:latest}
     container_name: dashboard_clinic
     restart: unless-stopped
-    # No ports: — only reachable via Traefik (no public 8501)
     environment:
       - STREAMLIT_SERVER_PORT=10000
       - STREAMLIT_SERVER_ADDRESS=0.0.0.0
@@ -23,24 +42,18 @@ services:
     networks:
       - traefik-public
     labels:
-      # Enable Traefik for this container
       - "traefik.enable=true"
-      # Router: HTTPS
       - "traefik.http.routers.dashboard-clinic.rule=Host(`painel.agenciakimera.com`)"
       - "traefik.http.routers.dashboard-clinic.entrypoints=websecure"
       - "traefik.http.routers.dashboard-clinic.tls=true"
       - "traefik.http.routers.dashboard-clinic.tls.certresolver=letsencrypt"
       - "traefik.http.routers.dashboard-clinic.service=dashboard-clinic"
-      # Router: HTTP -> HTTPS redirect
       - "traefik.http.routers.dashboard-clinic-http.rule=Host(`painel.agenciakimera.com`)"
       - "traefik.http.routers.dashboard-clinic-http.entrypoints=web"
       - "traefik.http.routers.dashboard-clinic-http.middlewares=redirect-to-https"
-      # Middleware: redirect HTTP to HTTPS
       - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
       - "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
-      # Service: backend port
       - "traefik.http.services.dashboard-clinic.loadbalancer.server.port=10000"
-      # Optional: health check via Traefik (Traefik will use this for backend health)
       - "traefik.http.services.dashboard-clinic.loadbalancer.healthcheck.path=/_stcore/health"
       - "traefik.http.services.dashboard-clinic.loadbalancer.healthcheck.interval=30s"
       - "traefik.http.services.dashboard-clinic.loadbalancer.healthcheck.timeout=10s"
@@ -53,4 +66,4 @@ services:
 
 networks:
   traefik-public:
-    external: true
+    driver: bridge
