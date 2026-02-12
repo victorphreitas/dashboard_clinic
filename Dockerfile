@@ -10,10 +10,11 @@ ENV PYTHONUNBUFFERED=1
 ENV STREAMLIT_SERVER_PORT=10000
 ENV STREAMLIT_SERVER_ADDRESS=0.0.0.0
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
+# Install system dependencies (curl for HEALTHCHECK)
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     g++ \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching

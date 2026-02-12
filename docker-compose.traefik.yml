@@ -1,0 +1,56 @@
+# Production compose for dashboard_clinic behind Traefik
+# Usage:
+#   docker compose -f docker-compose.traefik.yml up -d
+#   OR with Swarm: docker stack deploy -c docker-compose.traefik.yml prestige
+#
+# Prerequisites:
+#   - Traefik network created: docker network create traefik-public
+#   - Traefik running with Let's Encrypt (certresolver=letsencrypt)
+#   - DNS: painel.agenciakimera.com -> Droplet IP
+
+services:
+  dashboard_clinic:
+    # For local: IMAGE not set → dashboard_clinic:latest. For Droplet/CI: set IMAGE=ghcr.io/OWNER/dashboard_clinic:latest
+    image: ${IMAGE:-dashboard_clinic:latest}
+    container_name: dashboard_clinic
+    restart: unless-stopped
+    # No ports: — only reachable via Traefik (no public 8501)
+    environment:
+      - STREAMLIT_SERVER_PORT=10000
+      - STREAMLIT_SERVER_ADDRESS=0.0.0.0
+      - STREAMLIT_SERVER_HEADLESS=true
+      - STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
+    networks:
+      - traefik-public
+    labels:
+      # Enable Traefik for this container
+      - "traefik.enable=true"
+      # Router: HTTPS
+      - "traefik.http.routers.dashboard-clinic.rule=Host(`painel.agenciakimera.com`)"
+      - "traefik.http.routers.dashboard-clinic.entrypoints=websecure"
+      - "traefik.http.routers.dashboard-clinic.tls=true"
+      - "traefik.http.routers.dashboard-clinic.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.dashboard-clinic.service=dashboard-clinic"
+      # Router: HTTP -> HTTPS redirect
+      - "traefik.http.routers.dashboard-clinic-http.rule=Host(`painel.agenciakimera.com`)"
+      - "traefik.http.routers.dashboard-clinic-http.entrypoints=web"
+      - "traefik.http.routers.dashboard-clinic-http.middlewares=redirect-to-https"
+      # Middleware: redirect HTTP to HTTPS
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
+      # Service: backend port
+      - "traefik.http.services.dashboard-clinic.loadbalancer.server.port=10000"
+      # Optional: health check via Traefik (Traefik will use this for backend health)
+      - "traefik.http.services.dashboard-clinic.loadbalancer.healthcheck.path=/_stcore/health"
+      - "traefik.http.services.dashboard-clinic.loadbalancer.healthcheck.interval=30s"
+      - "traefik.http.services.dashboard-clinic.loadbalancer.healthcheck.timeout=10s"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:10000/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+networks:
+  traefik-public:
+    external: true
