@@ -34,7 +34,7 @@ File: **`.github/workflows/deploy.yml`**
 | Secret           | Description |
 |------------------|-------------|
 | `SSH_PRIVATE_KEY` | Private key for SSH to the Droplet (full key, including `-----BEGIN ... -----`) |
-| `DROPLET_HOST`    | Droplet IP or hostname (e.g. `164.92.xxx.xxx`) |
+| `DROPLET_HOST`    | Droplet IP or hostname (e.g. `192.241.157.215`) |
 | `DROPLET_USER`    | SSH user (e.g. `root` or `ubuntu`). Optional; default `root` |
 | `GHCR_PAT`        | GitHub PAT with `read:packages` so the Droplet can pull the image |
 
@@ -71,7 +71,7 @@ docker network create traefik-public 2>/dev/null || true
 # Option A: clone repo and use compose from there
 git clone https://github.com/YOUR_ORG/prestige_clinic_dash.git .
 # Option B: copy only the compose file and create .env for IMAGE
-# scp docker-compose.traefik.yml user@DROPLET_IP:/opt/dashboard_clinic/
+# scp docker-compose.traefik.yml user@192.241.157.215:/opt/dashboard_clinic/
 ```
 
 Create `.env` on the Droplet if you use GHCR image (CI sets `IMAGE`; for manual runs set it here):
@@ -161,7 +161,7 @@ If the dashboard was previously run with `-p 8501:10000` or similar:
 - **Resolution:**  
   `dig +short painel.agenciakimera.com`  
   or `nslookup painel.agenciakimera.com`  
-  Must return the Droplet’s public IP.
+  Must return the Droplet’s public IP (e.g. 192.241.157.215).
 - **Propagation:** If you just changed DNS, wait 5–60 minutes and recheck.
 
 ### SSL (Let’s Encrypt)
@@ -197,7 +197,7 @@ curl -sI -k -H "Host: painel.agenciakimera.com" https://127.0.0.1:443/  # Traefi
 Internet
     │
     ▼
-[DNS: painel.agenciakimera.com → Droplet IP]
+[DNS: painel.agenciakimera.com → 192.241.157.215]
     │
     ▼
 Droplet (ports 80 / 443)

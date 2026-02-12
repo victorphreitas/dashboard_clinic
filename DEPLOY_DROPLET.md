@@ -2,6 +2,8 @@
 
 Passo a passo para puxar a atualização do repositório no Droplet e fazer o deploy do dashboard atrás do Traefik (sem expor porta 8501).
 
+**Droplet atual:** IP `192.241.157.215`. O app está hoje em **http://192.241.157.215:8501/** (porta 8501 exposta). Após o deploy com Traefik, o acesso será apenas por **https://painel.agenciakimera.com** (sem porta 8501 pública).
+
 O projeto já tem: [docker-compose.traefik.yml](docker-compose.traefik.yml) (Traefik, sem portas públicas), [Dockerfile](Dockerfile) (porta 10000), e [.github/workflows/deploy.yml](.github/workflows/deploy.yml) (CI/CD). O deploy pode ser **manual** (SSH + comandos) ou **automático** (push no GitHub dispara o workflow).
 
 ---
@@ -13,8 +15,8 @@ Se o Droplet ainda **não** tem o projeto em `/opt/dashboard_clinic`:
 ### 1. Conectar no Droplet
 
 ```bash
-ssh root@IP_DO_DROPLET
-# ou: ssh ubuntu@IP_DO_DROPLET
+ssh root@192.241.157.215
+# ou: ssh ubuntu@192.241.157.215
 ```
 
 ### 2. Criar pasta e clonar o repositório
@@ -79,7 +81,7 @@ Quando você já fez o setup (clone em `/opt/dashboard_clinic` e já rodou o com
 1. **Conectar no Droplet**
 
    ```bash
-   ssh root@IP_DO_DROPLET
+   ssh root@192.241.157.215
    ```
 
 2. **Ir para a pasta do projeto e puxar a nova versão do código**
@@ -134,7 +136,7 @@ O workflow [.github/workflows/deploy.yml](.github/workflows/deploy.yml) faz: bui
 | Secret            | Descrição                                                      |
 | ----------------- | -------------------------------------------------------------- |
 | `SSH_PRIVATE_KEY` | Chave privada SSH para acessar o Droplet                       |
-| `DROPLET_HOST`    | IP do Droplet                                                  |
+| `DROPLET_HOST`    | IP do Droplet (ex.: `192.241.157.215`)                         |
 | `DROPLET_USER`    | Ex.: `root` ou `ubuntu` (opcional)                             |
 | `GHCR_PAT`        | Token GitHub com `read:packages` para o Droplet puxar a imagem |
 
@@ -151,7 +153,7 @@ O workflow [.github/workflows/deploy.yml](.github/workflows/deploy.yml) faz: bui
 
 ## Checklist rápido (atualização manual)
 
-1. SSH no Droplet.
+1. SSH no Droplet: `ssh root@192.241.157.215`.
 2. `cd /opt/dashboard_clinic`.
 3. `git pull origin main`.
 4. `export IMAGE=ghcr.io/SEU_OWNER/dashboard_clinic:latest` (ou use `.env`).

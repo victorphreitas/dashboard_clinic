@@ -6,7 +6,7 @@
 # Prerequisites:
 #   - Traefik network created: docker network create traefik-public
 #   - Traefik running with Let's Encrypt (certresolver=letsencrypt)
-#   - DNS: painel.agenciakimera.com -> Droplet IP
+#   - DNS: painel.agenciakimera.com -> 192.241.157.215
 
 services:
   dashboard_clinic:
