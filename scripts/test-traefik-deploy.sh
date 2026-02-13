@@ -61,7 +61,7 @@ docker network inspect traefik-public --format '{{range .Containers}}{{.Name}} {
 
 echo ""
 echo "=== All checks passed. ==="
-echo "If Traefik is running on this host, open https://painel.agenciakimera.com (DNS must point here)."
+echo "If Traefik is running on this host, open https://painel.agenciakimera.com.br (DNS must point here)."
 echo "Logs: docker logs dashboard_clinic"
 
 if [ "$TEARDOWN" = true ]; then

@@ -2,7 +2,7 @@
 
 Passo a passo para puxar a atualização do repositório no Droplet e fazer o deploy do dashboard atrás do Traefik (sem expor porta 8501).
 
-**Droplet atual:** IP `192.241.157.215`. O app está hoje em **http://192.241.157.215:8501/** (porta 8501 exposta). Após o deploy com Traefik, o acesso será apenas por **https://painel.agenciakimera.com** (sem porta 8501 pública).
+**Droplet atual:** IP `192.241.157.215`. O app está hoje em **http://192.241.157.215:8501/** (porta 8501 exposta). Após o deploy com Traefik, o acesso será apenas por **https://painel.agenciakimera.com.br** (sem porta 8501 pública).
 
 O projeto já tem: [docker-compose.traefik.yml](docker-compose.traefik.yml) (Traefik, sem portas públicas), [Dockerfile](Dockerfile) (porta 10000), e [.github/workflows/deploy.yml](.github/workflows/deploy.yml) (CI/CD). O deploy pode ser **manual** (SSH + comandos) ou **automático** (push no GitHub dispara o workflow).
 
@@ -68,7 +68,7 @@ docker ps
 docker logs dashboard_clinic --tail 30
 ```
 
-Acesse: **https://painel.agenciakimera.com**
+Acesse: **https://painel.agenciakimera.com.br**
 
 ---
 
@@ -159,6 +159,6 @@ O workflow [.github/workflows/deploy.yml](.github/workflows/deploy.yml) faz: bui
 4. `export IMAGE=ghcr.io/SEU_OWNER/dashboard_clinic:latest` (ou use `.env`).
 5. `docker compose -f docker-compose.traefik.yml pull`.
 6. `docker compose -f docker-compose.traefik.yml up -d --force-recreate`.
-7. Testar https://painel.agenciakimera.com.
+7. Testar https://painel.agenciakimera.com.br.
 
 Documentação detalhada (troubleshooting, rede, SSL): [DEPLOY_TRAEFIK.md](DEPLOY_TRAEFIK.md).

@@ -1,6 +1,6 @@
 # Deploy Dashboard behind Traefik (DigitalOcean + Docker)
 
-Production setup for **dashboard_clinic** at **https://painel.agenciakimera.com** via Traefik, with no public container ports.
+Production setup for **dashboard_clinic** at **https://painel.agenciakimera.com.br** via Traefik, with no public container ports.
 
 ---
 
@@ -166,7 +166,7 @@ If the dashboard was previously run with `-p 8501:10000` or similar:
 
 ### SSL (Let’s Encrypt)
 
-- **Certificate:** In Traefik logs, look for ACME / certificate success or errors for `painel.agenciakimera.com`.
+- **Certificate:** In Traefik logs, look for ACME / certificate success or errors for `painel.agenciakimera.com.br`.
 - **Resolver:** Compose uses `certresolver=letsencrypt`. If your Traefik uses another name, update the label.
 - **Browser:** Check certificate in browser (valid issuer, no mixed content).
 
@@ -185,8 +185,8 @@ If the dashboard was previously run with `-p 8501:10000` or similar:
 # From the Droplet
 curl -sI http://localhost:10000/_stcore/health   # from host to container (if port not published, use exec)
 docker exec dashboard_clinic curl -sI http://localhost:10000/_stcore/health
-curl -sI -H "Host: painel.agenciakimera.com" http://127.0.0.1:80/   # Traefik HTTP (redirect)
-curl -sI -k -H "Host: painel.agenciakimera.com" https://127.0.0.1:443/  # Traefik HTTPS (optional -k if self-signed during issuance)
+curl -sI -H "Host: painel.agenciakimera.com.br" http://127.0.0.1:80/   # Traefik HTTP (redirect)
+curl -sI -k -H "Host: painel.agenciakimera.com.br" https://127.0.0.1:443/  # Traefik HTTPS (optional -k if self-signed during issuance)
 ```
 
 ---
