@@ -1,35 +1,12 @@
-# GitOps: Traefik + dashboard_clinic (Streamlit)
+# GitOps: dashboard_clinic (Streamlit) atrás do Traefik existente no servidor
 # Uso: docker compose -f docker-compose.traefik.yml up -d
 #
 # Pré-requisitos no servidor:
-#   - acme.json criado com chmod 600 (para Let's Encrypt)
+#   - Traefik já rodando (ex.: Easypanel/Swarm) nas portas 80/443
+#   - Rede traefik-public criada e Traefik conectado a ela
 #   - DNS: painel.agenciakimera.com.br -> 192.241.157.215
 
 services:
-  traefik:
-    image: traefik:v2.10
-    container_name: traefik
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./acme.json:/letsencrypt/acme.json
-    command:
-      - --api.dashboard=true
-      - --providers.docker=true
-      - --providers.docker.exposedbydefault=false
-      - --entrypoints.web.address=:80
-      - --entrypoints.websecure.address=:443
-      - --entrypoints.web.http.redirections.entrypoint.to=websecure
-      - --entrypoints.web.http.redirections.entrypoint.scheme=https
-      - --certificatesresolvers.letsencrypt.acme.tlschallenge=true
-      - --certificatesresolvers.letsencrypt.acme.email=victorphreitas@gmail.com
-      - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
-    networks:
-      - traefik-public
-
   dashboard_clinic:
     image: ${IMAGE:-dashboard_clinic:latest}
     container_name: dashboard_clinic
@@ -66,4 +43,4 @@ services:
 
 networks:
   traefik-public:
-    driver: bridge
+    external: true
