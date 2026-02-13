@@ -3,7 +3,7 @@
 #
 # Pré-requisitos no servidor:
 #   - acme.json criado com chmod 600 (para Let's Encrypt)
-#   - DNS: painel.agenciakimera.com -> 192.241.157.215
+#   - DNS: painel.agenciakimera.com.br -> 192.241.157.215
 
 services:
   traefik:
@@ -43,12 +43,12 @@ services:
       - traefik-public
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.dashboard-clinic.rule=Host(`painel.agenciakimera.com`)"
+      - "traefik.http.routers.dashboard-clinic.rule=Host(`painel.agenciakimera.com.br`)"
       - "traefik.http.routers.dashboard-clinic.entrypoints=websecure"
       - "traefik.http.routers.dashboard-clinic.tls=true"
       - "traefik.http.routers.dashboard-clinic.tls.certresolver=letsencrypt"
       - "traefik.http.routers.dashboard-clinic.service=dashboard-clinic"
-      - "traefik.http.routers.dashboard-clinic-http.rule=Host(`painel.agenciakimera.com`)"
+      - "traefik.http.routers.dashboard-clinic-http.rule=Host(`painel.agenciakimera.com.br`)"
       - "traefik.http.routers.dashboard-clinic-http.entrypoints=web"
       - "traefik.http.routers.dashboard-clinic-http.middlewares=redirect-to-https"
       - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"

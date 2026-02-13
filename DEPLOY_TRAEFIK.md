@@ -31,17 +31,17 @@ File: **`.github/workflows/deploy.yml`**
 
 ### GitHub Secrets (required)
 
-| Secret           | Description |
-|------------------|-------------|
+| Secret            | Description                                                                     |
+| ----------------- | ------------------------------------------------------------------------------- |
 | `SSH_PRIVATE_KEY` | Private key for SSH to the Droplet (full key, including `-----BEGIN ... -----`) |
-| `DROPLET_HOST`    | Droplet IP or hostname (e.g. `192.241.157.215`) |
-| `DROPLET_USER`    | SSH user (e.g. `root` or `ubuntu`). Optional; default `root` |
-| `GHCR_PAT`        | GitHub PAT with `read:packages` so the Droplet can pull the image |
+| `DROPLET_HOST`    | Droplet IP or hostname (e.g. `192.241.157.215`)                                 |
+| `DROPLET_USER`    | SSH user (e.g. `root` or `ubuntu`). Optional; default `root`                    |
+| `GHCR_PAT`        | GitHub PAT with `read:packages` so the Droplet can pull the image               |
 
 ### GitHub variable (optional)
 
-| Variable      | Description |
-|---------------|-------------|
+| Variable      | Description                                                                                 |
+| ------------- | ------------------------------------------------------------------------------------------- |
 | `DEPLOY_PATH` | Path on Droplet where `docker-compose.traefik.yml` lives (default: `/opt/dashboard_clinic`) |
 
 ### GHCR visibility
@@ -123,7 +123,7 @@ If the dashboard was previously run with `-p 8501:10000` or similar:
 
 1. Stop that container: `docker stop <container_name>` (or remove the `ports:` from the old compose).
 2. Deploy only with `docker-compose.traefik.yml` (no port mapping).
-3. Access only via **https://painel.agenciakimera.com**.
+3. Access only via **https://painel.agenciakimera.com.br**.
 
 ---
 
@@ -143,7 +143,7 @@ If the dashboard was previously run with `-p 8501:10000` or similar:
 - **Logs:**  
   `docker logs traefik 2>&1 | tail -100`  
   or container name you use for Traefik.
-- **Routers:** In Traefik dashboard (if enabled) or logs, confirm a router for `painel.agenciakimera.com` and no errors.
+- **Routers:** In Traefik dashboard (if enabled) or logs, confirm a router for `painel.agenciakimera.com.br` and no errors.
 - **Backend:** Check that the service points to port **10000** and that the backend is “UP”.
 
 ### Dashboard container
@@ -159,8 +159,8 @@ If the dashboard was previously run with `-p 8501:10000` or similar:
 ### DNS
 
 - **Resolution:**  
-  `dig +short painel.agenciakimera.com`  
-  or `nslookup painel.agenciakimera.com`  
+  `dig +short painel.agenciakimera.com.br`  
+  or `nslookup painel.agenciakimera.com.br`  
   Must return the Droplet’s public IP (e.g. 192.241.157.215).
 - **Propagation:** If you just changed DNS, wait 5–60 minutes and recheck.
 
@@ -197,7 +197,7 @@ curl -sI -k -H "Host: painel.agenciakimera.com" https://127.0.0.1:443/  # Traefi
 Internet
     │
     ▼
-[DNS: painel.agenciakimera.com → 192.241.157.215]
+[DNS: painel.agenciakimera.com.br → 192.241.157.215]
     │
     ▼
 Droplet (ports 80 / 443)
@@ -205,7 +205,7 @@ Droplet (ports 80 / 443)
     ▼
 Traefik container
     │  • Terminates TLS (Let’s Encrypt)
-    │  • Router: Host(`painel.agenciakimera.com`) → service dashboard-clinic
+    │  • Router: Host(`painel.agenciakimera.com.br`) → service dashboard-clinic
     │  • Resolves backend on network traefik-public
     │
     ▼
@@ -218,4 +218,4 @@ Response to client (HTTPS)
 ```
 
 - **No direct exposure** of the dashboard container; only Traefik listens on 80/443.
-- **Single entry point:** All traffic for `painel.agenciakimera.com` goes to Traefik, then to the dashboard service on the same Docker network.
+- **Single entry point:** All traffic for `painel.agenciakimera.com.br` goes to Traefik, then to the dashboard service on the same Docker network.
